@@ -5,25 +5,20 @@ import NoImage from './assets/novideo.png'
 type VideoProps = {
   stream?: MediaStream,
   controls?: VNode | VNode[],
+  maxHeight?: string,
+  maxWidth?: string,
   ref?: (ref: HTMLVideoElement) => void
 } & JSX.HTMLAttributes<HTMLVideoElement>
-export const Video = ({ stream, controls, ref, ...props }: VideoProps) => (
-  <div>
-    {controls && controls || null}
-    <video
-      autoPlay
-      poster={NoImage}
-      style={{
-        width: '100%',
-        maxHeight: '100%'
-      }}
-      ref={video => {
-        if (video && stream) {
-          video.srcObject = stream;
-          video.load();
-          ref && ref(video)
-        }
-      }}
-      {...props} />
-  </div>
+export const Video = ({ stream, controls, ref, maxWidth, maxHeight, ...props }: VideoProps) => (
+  <video
+    autoPlay
+    poster={NoImage}
+    ref={video => {
+      if (video && stream) {
+        video.srcObject = stream;
+        video.load();
+        ref && ref(video)
+      }
+    }}
+    {...props} />
 )

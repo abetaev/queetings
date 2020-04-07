@@ -11,7 +11,7 @@ import { Meeting } from './network'
 import uuid = require('uuid')
 import { Video } from './video'
 import Layout from './layout'
-import Cogpit from './cogpit'
+import Menu from './menu'
 
 let beaconServer = `wss://${(new URL(document.URL)).host}/`
 
@@ -60,11 +60,11 @@ export default () => {
   return (
     <Fragment>
       <Layout
+        menu={<Menu meeting={meeting} />}
         tiles={
           Object.keys(meeting.conversations)
             .map((peerId) => <Video stream={meeting.conversations[peerId].stream} />)
         } />
-      <Cogpit meeting={meeting}/>
     </Fragment>
   )
 }
