@@ -151,16 +151,9 @@ async function setupControlChannel(meeting: Meeting, conversation: Conversation)
 }
 
 async function nextMessage(channel: RTCDataChannel): Promise<ControlMessage> {
-
-  const oldHandler = channel.onmessage
-  try {
-    return await new Promise(resolve => channel.onmessage = ({ data }) => resolve(
-      JSON.parse(data)
-    ))
-  } finally {
-    channel.onmessage = oldHandler
-  }
-
+  return await new Promise(resolve => channel.onmessage = ({ data }) => resolve(
+    JSON.parse(data)
+  ))
 }
 
 type HelloMessage = { type: "hello", network: Network }

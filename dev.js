@@ -55,7 +55,7 @@ runEvery(async () => {
       log(error)
     }
   }
-  updateRequired && log('peer&beacon are up to date')
+  updateRequired && log(`peer&beacon are up to date: https://localhost:8082/`)
 }, 100)
 
 const watch = require('node-watch')

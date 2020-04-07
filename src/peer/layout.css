@@ -1,0 +1,37 @@
+body {
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+aside {
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 13vw;
+  background-color: grey;
+}
+
+main {
+  padding: 0;
+  margin: 0;
+
+  display: grid;
+  grid-column-gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
+  grid-template-rows: repeat(auto-fit, minmax(30%, 1fr));
+
+  width: 100vw;
+  height: 100vh;
+}
+
+button.menu {
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+}
+
+video {
+  cursor: pointer;
+}
