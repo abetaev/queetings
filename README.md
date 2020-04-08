@@ -18,7 +18,7 @@ pre-requisites:
 
 `npm run deploy`
 
-### use
+### operate
 
 pre-requisites:
 
@@ -78,3 +78,44 @@ list of features for the first release
      (e.g. green border -- smile, red border -- angry)
   3. attach things (mustache?:)) to face landmarks
     1. share attached things with others
+
+
+**development**
+---------------
+
+this section is btw the main one at current state of being. previous were just introduction.
+
+### generic algorithm
+
+ 1. run
+    `npm run dev`
+
+ 2. after successful compilation it'll say that peer and beacon are updated there will be url:
+    `http://localhost:8082/`
+
+ 3. open browser, look at what's there is, try it, define what you don't like, improve it!
+
+ 4. code is in `src/peer` directory, less likely you would want to change `src/beacon.js`
+    upon any file update corresponding module will be rebuilt
+
+    * all files which relate to **peer** must start with `src/peer`
+
+    * all files related to **beacon** must start with `src/beacon`
+
+### improvements planned
+
+in order of priority:
+
+ 1. increase stability
+
+ 2. increase accessibility
+
+   1. simplicity
+
+   2. portability
+
+ 3. add features, e.g.:
+
+   1. mute
+
+   2. chat

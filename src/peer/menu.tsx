@@ -5,6 +5,7 @@
 
 import { h, Fragment } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
+import TextField, { TextFieldInput } from 'preact-material-components/ts/TextField'
 import { Meeting } from './network'
 import * as NETWORK from './network'
 import TelegramIcon from './assets/telegram.png'
@@ -63,6 +64,18 @@ export default ({ meeting }: { meeting: Meeting }) => (
   <Fragment>
     <Video stream={meeting.stream} muted />
     <div class="videoControls">
+      <TextField type="url" leadingIcon="link" dense outlined
+       onChange={({ target }) => {
+        try {
+          const url = new URL(target.value)
+          const invitation = url.protocol === 'wss' ? target.value : url.searchParams.get('join')
+          NETWORK.acceptInvitation(meeting, invitation)
+        } finally {
+          target.value = ""
+        }
+      }} >
+        <TextFieldInput/>
+      </TextField>
       <IconButton onClick={() => copy(meeting)}>
         <IconButton.Icon on={true}>link</IconButton.Icon>
         <IconButton.Icon on={false}>link</IconButton.Icon>

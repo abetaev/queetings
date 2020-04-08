@@ -24,7 +24,6 @@ export default ({ tiles, menu }: { tiles: VNode[], menu: VNode }) => {
   const vSize = px(size.height / vItems);
   const hSize = px(size.width / hItems);
   const emptyTiles = [...range(2, (hItems * vItems) - tiles.length)]
-  console.log(`${hItems}x${vItems}, ${tiles.length} ${emptyTiles.length}`)
   return (
     <main style={{
       gridTemplateColumns: `repeat(auto-fit, minmax(${hSize}, 1fr))`,
