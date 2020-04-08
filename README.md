@@ -1,8 +1,52 @@
 queetings
 =========
 
-MVP
----
+[this is very-very-very-draft]
+
+serverless web-conferences with unimaginable client agility
+
+not a lot of details yet, open mind is the source of 'em!
+
+usage
+-----
+
+### deploy
+
+pre-requisites:
+
+ * `gcloud` toolkit installed
+
+`npm run deploy`
+
+### use
+
+pre-requisites:
+
+ * supported browser
+   
+   should work on:
+    * Firefox@Linux
+    * Chrome@MacOS,
+    * Chrome@Android
+    * Safari@IOS
+
+ * a bag of hemp to keep away all frustration
+
+after deployment it'll tell u URL to go
+
+### improve!
+
+hell yeah... but how? dig in the shit... erh.... code :) fork, dumb, create!!!
+
+features
+--------
+
+MVP is what's planned to initial official release.
+MVP-next is futurology.
+
+### MVP
+
+list of features for the first release
 
 1. volatile meetings + self-organization (all-with-all)
   1. peer who joins get to know everybody else connected
@@ -16,8 +60,9 @@ MVP
   1. disconnect handling
     1. firefox does not generate event
 
-MVP-next
---------
+
+### MVP-next
+
 1. chat-feature!
 2. cross-platform
   1. android webview app
