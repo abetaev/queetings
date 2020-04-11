@@ -2,6 +2,7 @@ import { meet, inviteAt } from './rtc-lib'
 
 const MONITOR_INTERVAL = 10000;
 const ECHO_INTERVAL = 1000;
+const HELLO_INTERVAL = 100;
 
 export interface Network {
   id: string
@@ -9,6 +10,7 @@ export interface Network {
 }
 
 export type Conversation = {
+  id: string
   peer: RTCPeerConnection
   controlChannel: RTCDataChannel
   stream: MediaStream
@@ -38,21 +40,22 @@ export async function issueInvitation(
 
   await new Promise(
     async (resolve, reject) => {
-      peer.ondatachannel = async ({ channel: controlChannel }) => {
-        if (controlChannel.label !== "control") {
+      peer.ondatachannel = async ({ channel }) => {
+        if (channel.label !== "control") {
           // principle: incompatible? fail: *fail fast*!
-          controlChannel.close()
+          channel.close()
           peer.close()
-          reject(`channel "${controlChannel.label}" is not supported`);
+          reject(`channel "${channel.label}" is not supported`);
         }
 
-        conversation.controlChannel = controlChannel
+        console.log('received control channel')
+        conversation.controlChannel = channel
 
-        controlChannel.onopen = async () => {
-          await startConversation(meeting, conversation)
-          resolve();
+        channel.onopen = async () => {
+          startConversation(meeting, conversation)
         }
 
+        resolve();
       }
 
       sendInvite(inviteUrl);
@@ -91,10 +94,11 @@ function defineConversation(
   stream: MediaStream
 ): Conversation {
   const conversation: Conversation = {
+    id: "",
     peer: null as RTCPeerConnection,
     controlChannel: null as RTCDataChannel,
     stream: null as MediaStream,
-    echoes: 0
+    echoes: 1
   }
 
   stream.getTracks()
@@ -113,73 +117,26 @@ function defineConversation(
   return conversation;
 }
 
-async function startConversation(meeting: Meeting, conversation: Conversation) {
-  const network = await setupControlChannel(meeting, conversation);
-
-  meeting.conversations[network.id] = conversation;
-
-  scheduleEcho(meeting, network.id)
-
-  extendNetwork(meeting, conversation, network.id, network.peers);
-}
-
-async function setupControlChannel(meeting: Meeting, conversation: Conversation): Promise<Network> {
-
-  const { peer, controlChannel } = conversation
-  const { network } = meeting
-
-  controlChannel.onerror = (e) => console.log(e);
-
-  // generously introduce ourselves and provide list of peers we know
-  sendControlMessage(conversation, {
-    type: "hello",
-    network
-  });
-
-  // expect similar behavior in response
-  const message = await nextMessage(controlChannel)
-  if (message.type !== "hello") {
-    controlChannel.close(); // or go away
-    peer.close();
-    throw new Error("peer did not greet")
-  }
-
-  // await pings and echos
-  controlChannel.onmessage =
+function startConversation(meeting: Meeting, conversation: Conversation) {
+  console.log('starting conversation')
+  conversation.controlChannel.onmessage =
     ({ data }) => handleControlMessage(
       meeting,
       conversation,
       JSON.parse(data)
     );
-
-  // and monitor network
-  (function monitor() {
-    setTimeout(() => {
-      console.log(`monitoring conversation ${message.network.id}`)
-      if (!conversation.echoes) {
-        console.log(`peer ${message.network.id} does not seem alive: ${conversation.echoes}`)
-        reconnect(meeting, message.network.id)
-      } else {
-        conversation.echoes = 0
-        monitor()
-      }
-    }, MONITOR_INTERVAL)
-  })()
-
-  return message.network;
-
-}
-
-async function nextMessage(channel: RTCDataChannel): Promise<ControlMessage> {
-  return await new Promise(resolve => channel.onmessage = ({ data }) => resolve(
-    JSON.parse(data)
-  ))
+  setTimeout(() => {
+    sendControlMessage(conversation, {
+      type: 'hello',
+      network: meeting.network
+    })
+  }, HELLO_INTERVAL);
 }
 
 type HelloMessage = { type: "hello", network: Network }
 type JoinMessage = { type: "join", invitation: string }
 type EchoMessage = { type: "echo", network: Network }
-type ControlMessage = { to?: string } & (
+type ControlMessage = { to?: string, from?: string } & (
   HelloMessage
   | JoinMessage
   | EchoMessage
@@ -195,65 +152,72 @@ async function handleControlMessage(
   conversation: Conversation,
   message: ControlMessage
 ) {
-  const { peer, controlChannel } = conversation;
   const { network } = meeting
-
-  const { to } = message
+  const { to, from } = message
 
   if (to && to !== network.id) {
-    if (network.peers.includes(to)) {
-      sendControlMessage(meeting.conversations[to], message);
-    } else {
-      throw new Error(`undeliverable message: ${JSON.stringify(message)}`)
+    if (from === conversation.id) {
+      if (meeting.conversations[to]) {
+        sendControlMessage(meeting.conversations[to], message);
+      } else {
+        throw new Error(`undeliverable message: ${JSON.stringify(message)}`)
+      }
     }
     return;
   }
 
   if (message.type === "join") {
     await acceptInvitation(meeting, message.invitation)
-  } else if (message.type === "echo") {
+  } else if (message.type === "hello" && conversation.id === "") {
+    negotiateConnection(meeting, conversation, message.network);
+    extendNetwork(meeting, conversation, message.network);
+  } else if (message.type === "echo" && conversation.id !== "") {
     conversation.echoes++;
-    if (conversation.echoes === 1) {
-      extendNetwork(meeting, conversation, message.network.id, message.network.peers);
-    }
+    extendNetwork(meeting, conversation, message.network);
   } else {
-    controlChannel.close();
-    peer.close(); // any protocol violation causes abort
-    throw new Error(`unsupported message: ${JSON.stringify(message)}`)
+    disconnect(meeting, conversation.id)
+    throw new Error(`unexpected message: ${JSON.stringify(message)}`)
   }
 
 }
 
-function extendNetwork(meeting: Meeting, conversation: Conversation, peer: string, peers: string[]) {
-  const { network } = meeting
-
-  peers = peers.filter(peer => peer != network.id)
-  const newPeers = peers.filter(peer => !network.peers.includes(peer))
-
-  if (!network.peers.includes(peer)) {
-    meeting.network.peers.push(peer);
-    meeting.conversations[peer] = conversation;
-    conversation.peer.onconnectionstatechange = () => {
-      if (conversation.peer.connectionState === "disconnected") {
-        console.log(`detected disconnection loss with ${network.id}`)
-        reconnect(meeting, peer)
-      }
-    }
-    meeting.on('connect', peer)
+function negotiateConnection(meeting: Meeting, conversation: Conversation, network: Network) {
+  if (!meeting.network.peers.includes(network.id)) {
+    meeting.network.peers.push(network.id)
   }
+  conversation.id = network.id;
+  meeting.conversations[network.id] = conversation;
+  conversation.peer.onconnectionstatechange = () => {
+    if (conversation.peer.connectionState === "disconnected") {
+      console.log(`detected connection loss with ${network.id}`)
+      disconnect(meeting, network.id)
+    }
+  }
+  scheduleEcho(meeting, conversation);
+  monitor(meeting, conversation);
+  meeting.on('connect', network.id)
+  console.log(`connecion with ${network.id} negotiated`)
+}
 
-  newPeers.forEach(async (newPeer) => {
-    connect(meeting, conversation, newPeer)
-  })
-
+async function extendNetwork(meeting: Meeting, conversation: Conversation, network: Network) {
+  network.peers
+    .filter(peer => peer != meeting.network.id)
+    .filter(peer => !meeting.network.peers.includes(peer))
+    .forEach(async (newPeer) => connect(meeting, conversation, newPeer))
 }
 
 function connect(meeting: Meeting, conversation: Conversation, id: string) {
+  if (meeting.network.peers.includes(id)) {
+    console.log(`already connected to ${id}`)
+    return;
+  }
   console.log(`connecting to ${id}`)
+  meeting.network.peers.push(id)
   issueInvitation(
     meeting,
     (inviteUrl) => sendControlMessage(conversation, {
       to: id,
+      from: meeting.network.id,
       type: "join",
       invitation: inviteUrl.toString()
     })
@@ -261,12 +225,11 @@ function connect(meeting: Meeting, conversation: Conversation, id: string) {
 }
 
 function disconnect(meeting: Meeting, peer: string) {
-  console.log(`disconnecting from ${peer}`)
   if (meeting.network.peers.includes(peer)) {
+    console.log(`disconnecting from ${peer}`)
     meeting.network.peers = meeting.network.peers.filter(that => that !== peer)
     try {
-      meeting.conversations[peer].controlChannel.close()
-      meeting.conversations[peer].peer.close()
+      disconnectConversation(meeting.conversations[peer])
     } finally {
       delete meeting.conversations[peer]
       meeting.on('disconnect', peer);
@@ -274,16 +237,23 @@ function disconnect(meeting: Meeting, peer: string) {
   }
 }
 
-function scheduleEcho(meeting: Meeting, id: string) {
+function disconnectConversation(conversation: Conversation) {
+  conversation.controlChannel.close();
+  conversation.peer.close();
+}
+
+function scheduleEcho(meeting: Meeting, conversation: Conversation) {
   setTimeout(() => {
-    if (meeting.conversations[id]) {
-      sendControlMessage(meeting.conversations[id], ({ type: 'echo', network: meeting.network }));
-      scheduleEcho(meeting, id);
+    if (meeting.network.peers.includes(conversation.id)) {
+      sendControlMessage(meeting.conversations[conversation.id], ({ type: 'echo', network: meeting.network }));
+      scheduleEcho(meeting, conversation);
+    } else {
+      console.log(`peer ${conversation.id} disconnected, cancelling echo schedule`)
     }
   }, ECHO_INTERVAL)
 }
 
-function reconnect(meeting: Meeting, id: string) {
+async function reconnect(meeting: Meeting, id: string) {
   console.log(`reconnectting to ${id}`)
   disconnect(meeting, id)
 
@@ -293,5 +263,21 @@ function reconnect(meeting: Meeting, id: string) {
 
   const route = Math.floor(Math.random() * 31) % routes.length;
 
-  connect(meeting, meeting.conversations[route], id)
+  if (route >= 0) {
+    connect(meeting, meeting.conversations[route], id)
+  } else {
+    console.log(`no route found to ${id}`)
+  }
+}
+
+function monitor(meeting: Meeting, conversation: Conversation) {
+  setTimeout(() => {
+    if (conversation.echoes === 0) {
+      console.log(`peer ${conversation.id} does not seem alive: ${conversation.echoes}`)
+      reconnect(meeting, conversation.id)
+    } else {
+      conversation.echoes = 0
+      monitor(meeting, conversation)
+    }
+  }, MONITOR_INTERVAL)
 }
