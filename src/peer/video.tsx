@@ -1,15 +1,12 @@
 import { h, JSX, VNode } from 'preact'
 import NoImage from './assets/novideo.png'
 
-
 type VideoProps = {
   stream?: MediaStream,
   controls?: VNode | VNode[],
-  maxHeight?: string,
-  maxWidth?: string,
   ref?: (ref: HTMLVideoElement) => void
 } & JSX.HTMLAttributes<HTMLVideoElement>
-export const Video = ({ stream, controls, ref, maxWidth, maxHeight, ...props }: VideoProps) => (
+export const Video = ({ stream, controls, ref, ...props }: VideoProps) => (
   <video
     autoPlay
     poster={NoImage}

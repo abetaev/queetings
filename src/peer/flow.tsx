@@ -3,9 +3,9 @@
  * responsibility for ordering is on tiles provider
  */
 
-import { h, VNode } from "preact"
-import { pc, px } from "./css";
+import { h, VNode } from "preact";
 import { useState } from "preact/hooks";
+import { px } from "./css";
 
 function* range(start: number, end: number) {
   for (let i = start; i <= end; i++) {
@@ -13,7 +13,7 @@ function* range(start: number, end: number) {
   }
 }
 
-export default ({ tiles, menu }: { tiles: VNode[], menu: VNode }) => {
+export default ({ tail: tiles, head: menu }: { tail: VNode[], head: VNode }) => {
   const [size, setSize] = useState<{ width: number, height: number }>({ width: window.innerWidth, height: window.innerHeight })
   window.onresize = () => setSize({ width: window.innerWidth, height: window.innerHeight })
 
@@ -42,7 +42,7 @@ export default ({ tiles, menu }: { tiles: VNode[], menu: VNode }) => {
       gridTemplateColumns: `repeat(auto-fit, minmax(${hSize}, 1fr))`,
       gridTemplateRows: `repeat(auto-fit, minmax(${vSize}, 1fr))`
     }}>
-      {tiles.map(tile => <div style={{ maxWidth: hSize, maxHeight: vSize }}>{tile}</div>)}
+      {tiles.map(tile => <div style={{ position: 'relative', maxWidth: hSize, maxHeight: vSize }}>{tile}</div>)}
       {emptyTiles.map(() => <div />)}
       <div style={{ position: 'relative', maxHeight: vSize }}>{menu}</div>
     </main>

@@ -3,15 +3,15 @@
  * integrates user interface and network features
  */
 
-import { h, Fragment } from 'preact'
+import { h } from 'preact'
 import 'preact-material-components/style.css'
 import { useState } from 'preact/hooks'
+import Conversation from './conversation'
+import Flow from './flow'
+import Myself from './myself'
 import * as NETWORK from './network'
 import { Meeting } from './network'
 import uuid = require('uuid')
-import { Video } from './video'
-import Layout from './layout'
-import Menu from './menu'
 
 let beaconServer = `wss://${(new URL(document.URL)).host}/`
 
@@ -58,13 +58,11 @@ export default () => {
   }
 
   return (
-    <Fragment>
-      <Layout
-        menu={<Menu meeting={meeting} />}
-        tiles={
-          Object.keys(meeting.conversations)
-            .map((peerId) => <Video stream={meeting.conversations[peerId].stream} />)
-        } />
-    </Fragment>
+    <Flow
+      head={<Myself meeting={meeting} />}
+      tail={
+        Object.values(meeting.conversations)
+          .map((conversation) => <Conversation conversation={conversation} />)
+      } />
   )
 }
