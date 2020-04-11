@@ -6,6 +6,7 @@
 import { h, VNode } from "preact";
 import { useState } from "preact/hooks";
 import { px } from "./css";
+import './flow.css'
 
 function* range(start: number, end: number) {
   for (let i = start; i <= end; i++) {
@@ -17,7 +18,7 @@ export default ({ tail: tiles, head: menu }: { tail: VNode[], head: VNode }) => 
   const [size, setSize] = useState<{ width: number, height: number }>({ width: window.innerWidth, height: window.innerHeight })
   window.onresize = () => setSize({ width: window.innerWidth, height: window.innerHeight })
 
-  const orientation = size.width > size.height ? 'landscape' : 'portrait'
+  const orientation = 3 * size.width > 4 * size.height ? 'landscape' : 'portrait'
   const nItems = tiles.length + 1
 
   let hItems: number

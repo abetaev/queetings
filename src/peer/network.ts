@@ -15,6 +15,7 @@ export type Conversation = {
   controlChannel: RTCDataChannel
   stream: MediaStream
   echoes: number
+  onData?: (message: string) => void
 }
 
 export type Conversations = { [id: string]: Conversation }
@@ -136,10 +137,12 @@ function startConversation(meeting: Meeting, conversation: Conversation) {
 type HelloMessage = { type: "hello", network: Network }
 type JoinMessage = { type: "join", invitation: string }
 type EchoMessage = { type: "echo", network: Network }
+type DataMessage = { type: "data", data: string }
 type ControlMessage = { to?: string, from?: string } & (
   HelloMessage
   | JoinMessage
   | EchoMessage
+  | DataMessage
 )
 
 function sendControlMessage(conversation: Conversation, message: ControlMessage) {
@@ -174,6 +177,8 @@ async function handleControlMessage(
   } else if (message.type === "echo" && conversation.id !== "") {
     conversation.echoes++;
     extendNetwork(meeting, conversation, message.network);
+  } else if (message.type === "data" && conversation.id !== "") {
+    conversation.onData && conversation.onData(message.data)
   } else {
     disconnect(meeting, conversation.id)
     throw new Error(`unexpected message: ${JSON.stringify(message)}`)

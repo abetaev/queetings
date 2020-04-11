@@ -1,7 +1,8 @@
 import { h } from 'preact'
+import './item.css'
 
 export default ({ children }) => (
-  <div class="videoControls">
+  <span class="item">
     {children}
-  </div>
+  </span>
 )

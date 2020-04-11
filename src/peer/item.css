@@ -1,0 +1,10 @@
+span.item {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+span.item:not(:first-of-type){
+  border-left-style: solid;
+  border-left-color: #0005;
+  border-left-width: 4px;
+}

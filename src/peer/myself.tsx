@@ -12,8 +12,8 @@ import TelegramIcon from './assets/telegram.png'
 import { Video } from './video'
 import bgWhisky from './assets/bg_withkey.jpg'
 import bgBeer from './assets/bg_beer.jpg'
-import NoWrap from './nowrap'
-import Controls from './controls'
+import Item from './item'
+import Nav from './nav'
 
 const sendTo = (meeting: Meeting, handler: (peer: string) => void) => {
   NETWORK.issueInvitation(
@@ -65,7 +65,7 @@ function switchbg() {
 export default ({ meeting }: { meeting: Meeting }) => (
   <Fragment>
     <Video stream={meeting.stream} muted />
-    <Controls>
+    <Nav>
       <TextField type="url" leadingIcon="link" dense outlined
         onChange={({ target }) => {
           try {
@@ -78,25 +78,25 @@ export default ({ meeting }: { meeting: Meeting }) => (
         }} >
         <TextFieldInput />
       </TextField>
-      <NoWrap>
-        <NoWrap>
-          <IconButton onClick={() => copy(meeting)}>
-            <IconButton.Icon on={true}>link</IconButton.Icon>
-            <IconButton.Icon on={false}>link</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => email(meeting)}>
-            <IconButton.Icon on={true}>alternate_email</IconButton.Icon>
-            <IconButton.Icon on={false}>alternate_email</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => telegram(meeting)}>
-            <img src={TelegramIcon} style={{ height: '100%' }} />
-          </IconButton>
-        </NoWrap>
+      <Item>
+        <IconButton onClick={() => copy(meeting)}>
+          <IconButton.Icon on={true}>link</IconButton.Icon>
+          <IconButton.Icon on={false}>link</IconButton.Icon>
+        </IconButton>
+        <IconButton onClick={() => email(meeting)}>
+          <IconButton.Icon on={true}>alternate_email</IconButton.Icon>
+          <IconButton.Icon on={false}>alternate_email</IconButton.Icon>
+        </IconButton>
+        <IconButton onClick={() => telegram(meeting)}>
+          <img src={TelegramIcon} style={{ height: '100%' }} />
+        </IconButton>
+      </Item>
+      <Item>
         <IconButton onClick={() => switchbg()}>
           <IconButton.Icon on={true}>local_bar</IconButton.Icon>
           <IconButton.Icon on={false}>local_bar</IconButton.Icon>
         </IconButton>
-      </NoWrap>
-    </Controls>
+      </Item>
+    </Nav>
   </Fragment>
 )

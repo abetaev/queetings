@@ -1,0 +1,24 @@
+nav {
+  display: table;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background-color: none;
+}
+
+nav:hover {
+  background-color: #FFF3;
+}
+
+nav > span {
+  display: none;
+  vertical-align: middle;
+}
+
+nav:hover > span {
+  display: table-cell;
+}
+
