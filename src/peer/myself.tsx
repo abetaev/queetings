@@ -14,6 +14,7 @@ import bgWhisky from './assets/bg_withkey.jpg'
 import bgBeer from './assets/bg_beer.jpg'
 import Item from './item'
 import Nav from './nav'
+import clipboard from 'clipboard-polyfill'
 
 const sendTo = (meeting: Meeting, handler: (peer: string) => void) => {
   NETWORK.issueInvitation(
@@ -27,7 +28,7 @@ const sendTo = (meeting: Meeting, handler: (peer: string) => void) => {
 function telegram(meeting: Meeting) {
   sendTo(
     meeting,
-    (url) => window.open(`https://telegram.me/share/url?url=${encodeURI(url)}`)
+    (url) => window.open(`tg://msg_url?url=${encodeURI(url)}`)
   )
 }
 function email(meeting: Meeting) {
@@ -42,7 +43,7 @@ function copy(meeting: Meeting) {
     meeting,
     async (url) => {
       try {
-        await navigator.clipboard.writeText(url.toString())
+        await clipboard.writeText(url.toString())
         alert('link copied to clipboard')
       } catch (error) {
         alert(`failed to copy link: ${error}`)

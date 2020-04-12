@@ -10,7 +10,28 @@ not a lot of details yet, open mind is the source of 'em!
 usage
 -----
 
-### deploy
+### local
+
+#### requirements:
+
+ * node12
+
+#### development:
+
+`npm run dev` will start development server on all available interfaces:
+
+ * `https://0.0.0.0:8082`
+
+### GCP
+
+#### requirements:
+
+ * node12
+ * gcloud
+
+#### deploy
+
+deploys into flex app engine container
 
 pre-requisites:
 
@@ -18,7 +39,7 @@ pre-requisites:
 
 `npm run deploy`
 
-### operate
+#### operate
 
 pre-requisites:
 

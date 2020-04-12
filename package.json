@@ -22,10 +22,11 @@
     "ws": "^7.2.3"
   },
   "devDependencies": {
-    "@types/node": "^13.11.0",
+    "@types/node": "^13.11.1",
     "@types/node-static": "^0.7.3",
     "@types/uuid": "^3.4.8",
     "@types/ws": "^7.2.3",
+    "clipboard-polyfill": "^2.8.6",
     "jest": "^25.3.0",
     "node-watch": "^0.6.3",
     "parcel-bundler": "^1.12.4",
