@@ -30,8 +30,8 @@ export default ({ tail: tiles, head: menu }: { tail: VNode[], head: VNode }) => 
       vItems = Math.ceil(nItems / hItems)
       break;
     case 'portrait':
-      vItems = Math.ceil(Math.sqrt(nItems))
-      hItems = Math.ceil(nItems / vItems)
+      hItems = Math.floor(Math.sqrt(nItems))
+      vItems = Math.ceil(nItems / hItems)
       break;
   }
 

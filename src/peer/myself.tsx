@@ -58,8 +58,10 @@ function switchbg() {
   const b = `url("${bgBeer}")`
   if (current === w) {
     document.body.style.backgroundImage = b
-  } else {
+  } else if (current !== b) {
     document.body.style.backgroundImage = w
+  } else {
+    document.body.style.backgroundImage = ""
   }
 }
 
@@ -80,23 +82,25 @@ export default ({ meeting }: { meeting: Meeting }) => (
         <TextFieldInput />
       </TextField>
       <Item>
-        <IconButton onClick={() => copy(meeting)}>
-          <IconButton.Icon on={true}>link</IconButton.Icon>
-          <IconButton.Icon on={false}>link</IconButton.Icon>
-        </IconButton>
-        <IconButton onClick={() => email(meeting)}>
-          <IconButton.Icon on={true}>alternate_email</IconButton.Icon>
-          <IconButton.Icon on={false}>alternate_email</IconButton.Icon>
-        </IconButton>
-        <IconButton onClick={() => telegram(meeting)}>
-          <img src={TelegramIcon} style={{ height: '100%' }} />
-        </IconButton>
-      </Item>
-      <Item>
-        <IconButton onClick={() => switchbg()}>
-          <IconButton.Icon on={true}>local_bar</IconButton.Icon>
-          <IconButton.Icon on={false}>local_bar</IconButton.Icon>
-        </IconButton>
+        <Item>
+          <IconButton onClick={() => copy(meeting)}>
+            <IconButton.Icon on={true}>link</IconButton.Icon>
+            <IconButton.Icon on={false}>link</IconButton.Icon>
+          </IconButton>
+          <IconButton onClick={() => email(meeting)}>
+            <IconButton.Icon on={true}>alternate_email</IconButton.Icon>
+            <IconButton.Icon on={false}>alternate_email</IconButton.Icon>
+          </IconButton>
+          <IconButton onClick={() => telegram(meeting)}>
+            <img src={TelegramIcon} style={{ height: '100%' }} />
+          </IconButton>
+        </Item>
+        <Item>
+          <IconButton onClick={() => switchbg()}>
+            <IconButton.Icon on={true}>local_bar</IconButton.Icon>
+            <IconButton.Icon on={false}>local_bar</IconButton.Icon>
+          </IconButton>
+        </Item>
       </Item>
     </Nav>
   </Fragment>
