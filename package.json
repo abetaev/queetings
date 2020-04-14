@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "build-peer": "node build.js browser src/peer.html peer/index.html",
+    "build-peer": "node build.js browser src/peer.html www/index.html",
     "build-beacon": "node build.js node src/beacon.ts beacon/main.js",
     "build": "npm run build-peer; npm run build-beacon",
     "clean": "rm -rf peer beacon .cache node_modules; npm install",
@@ -16,7 +16,11 @@
   "author": "abetaev",
   "license": "ISC",
   "dependencies": {
+    "cordova-android": "^8.1.0",
+    "cordova-browser": "^6.0.0",
     "node-static": "^0.7.11",
+    "react-scripts": "^3.4.1",
+    "rimraf": "^3.0.2",
     "stun": "^2.1.0",
     "uuid": "^3.4.0",
     "ws": "^7.2.3"
@@ -33,6 +37,15 @@
     "preact": "^10.4.0",
     "preact-material-components": "^1.6.1",
     "typescript": "^3.8.3",
-    "webrtc-adapter": "^7.5.1"
+    "webrtc-adapter": "^7.5.1",
+    "cordova-plugin-whitelist": "1"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-whitelist": {}
+    },
+    "platforms": [
+      "browser"
+    ]
   }
 }

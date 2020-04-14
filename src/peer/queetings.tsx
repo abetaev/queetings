@@ -11,7 +11,7 @@ import Flow from './flow'
 import Myself from './myself'
 import * as NETWORK from './network'
 import { Meeting } from './network'
-import uuid = require('uuid')
+import { v4 as uuid } from 'uuid'
 
 let beaconServer = `wss://${(new URL(document.URL)).host}/`
 
