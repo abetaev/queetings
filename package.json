@@ -11,7 +11,11 @@
     "deploy": "npm run rebuild; gcloud app deploy",
     "start": "node beacon/main.js",
     "dev": "node dev.js",
-    "test": "exit 0"
+    "test": "exit 0",
+    "run-android": "cordova run android",
+    "build-android": "cordova build android",
+    "release-android": "android.release.sh"
+
   },
   "author": "abetaev",
   "license": "ISC",
