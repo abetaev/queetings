@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "build-peer": "node build.js browser src/peer.html www/index.html",
+    "build-peer": "node build.js browser src/peer.html peer/index.html",
     "build-beacon": "node build.js node src/beacon.ts beacon/main.js",
     "build": "npm run build-peer; npm run build-beacon",
     "clean": "rm -rf peer beacon .cache node_modules; npm install",
@@ -15,7 +15,6 @@
     "run-android": "cordova run android",
     "build-android": "cordova build android",
     "release-android": "android.release.sh"
-
   },
   "author": "abetaev",
   "license": "ISC",
