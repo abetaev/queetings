@@ -14,6 +14,7 @@ export const Video = ({ stream, controls, ref, ...props }: VideoProps) => (
       if (video && stream) {
         video.srcObject = stream;
         video.load();
+        video.play();
         ref && ref(video)
       }
     }}

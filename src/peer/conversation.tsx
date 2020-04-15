@@ -15,11 +15,11 @@ export default ({ conversation }: Props) => {
     )
   }
 
-  const [color, setColor] = useState("white")
+  const [color, setColor] = useState("transparent")
 
   conversation.onData = (color) => {
     setColor(color)
-    setTimeout(() => setColor("white"), 5000);
+    setTimeout(() => setColor("transparent"), 5000);
   }
   return (
     <Fragment>
