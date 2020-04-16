@@ -9,10 +9,6 @@ nav {
   background-color: none;
 }
 
-nav:hover {
-  background-color: #FFF3;
-}
-
 nav > span {
   display: none;
   vertical-align: middle;
@@ -22,3 +18,7 @@ nav:hover > span {
   display: table-cell;
 }
 
+nav:hover > span > div {
+  background-color: #FFF3;
+  align-items: center;
+}

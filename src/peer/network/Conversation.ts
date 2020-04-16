@@ -8,7 +8,7 @@ export type ConversationEvent = { type: 'open' | 'close' }
   | { type: 'data', data: string }
   | { type: 'forward', message: ControlMessage }
   | { type: 'extend', peers: string[] }
-  | { type: 'join', invitation: string }
+  | { type: 'join', to: string, invitation: URL }
 
 export type ConversationEventHandler = (conversation: Conversation, event: ConversationEvent) => void
 
@@ -38,7 +38,7 @@ export class Conversation implements Connection {
     peer.ontrack = ({ streams: [stream] }) => {
       console.log('stream!')
       this.stream = stream
-    } 
+    }
   }
 
   start(control: RTCDataChannel) {
@@ -54,7 +54,7 @@ export class Conversation implements Connection {
   private async onMessage(message: ControlMessage) {
     const { to } = message
 
-    if (to && to !== this.network.id) {
+    if (to) {
       this.eventHandler(this, { type: 'forward', message })
       return;
     }
@@ -64,11 +64,13 @@ export class Conversation implements Connection {
       this.eventHandler(this, { type: 'extend', peers: message.peers })
       return
     } else if (message.type === "join") {
-      this.eventHandler(this, { type: 'join', invitation: message.invitation })
+      this.eventHandler(this, { type: 'join', to: message.from, invitation: new URL(message.invitation) })
       return
     } else if (message.type === "echo") {
+      if (this.echoes === 0) {
+        this.eventHandler(this, { type: 'extend', peers: message.peers });
+      }
       this.echoes++;
-      this.eventHandler(this, { type: 'extend', peers: message.peers });
       return
     } else if (message.type === "data") {
       this.eventHandler(this, message)

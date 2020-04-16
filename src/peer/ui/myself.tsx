@@ -3,7 +3,7 @@
  * all buttons related to primary features are here
  */
 
-import clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill'
 import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
 import TextField, { TextFieldInput } from 'preact-material-components/ts/TextField'
@@ -37,15 +37,14 @@ async function copy(url: URL) {
     alert(`failed to copy link: ${error}`)
   }
 }
-
+let color = '#FFF'
 function switchBrightness() {
-  const current = document.body.style.backgroundColor
-  console.log(current)
-  if (current === "black") {
-    document.body.style.backgroundColor = "white";
+  if (color === "#000") {
+    color = '#FFF'
   } else {
-    document.body.style.backgroundColor = "black";
+    color = '#000'
   }
+  document.body.style.backgroundColor = color;
 }
 
 function switchBackground() {
@@ -74,6 +73,13 @@ export default ({ network }: { network: Network }) => (
     <Video stream={network.stream} muted />
     <Nav>
       <TextField type="url" leadingIcon="link" dense outlined
+        outerStyle={{
+          maxHeight: "2.2em",
+          verticalAlign: "center",
+          margin: "0",
+          padding: "0",
+          border: "none"
+        }}
         onChange={({ target }) => {
           try {
             const url = new URL(target.value)
@@ -105,8 +111,8 @@ export default ({ network }: { network: Network }) => (
             <IconButton.Icon>videocam</IconButton.Icon>
           </IconButton>
           <IconButton onClick={() => toggleAudio(network.stream)}>
-            <IconButton.Icon on>volume_off</IconButton.Icon>
-            <IconButton.Icon>volume_up</IconButton.Icon>
+            <IconButton.Icon on>mic_off</IconButton.Icon>
+            <IconButton.Icon>mic</IconButton.Icon>
           </IconButton>
         </Item>
         <Item>

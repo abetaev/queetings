@@ -30,7 +30,7 @@ export class Meeting implements Network {
           if (channel.label !== "control") {
             conversation.close()
           }
-          conversation.start(channel)          
+          conversation.start(channel)
         }
         handler(inviteUrl)
         await init()
@@ -45,7 +45,7 @@ export class Meeting implements Network {
         this, peer,
         (c, e) => this.handle(c, e)
       )
-      controlChannel.onopen = () => { conversation.start(controlChannel)}
+      controlChannel.onopen = () => { conversation.start(controlChannel) }
       await init()
     })
   }
@@ -87,11 +87,11 @@ export class Meeting implements Network {
 
   private handle(conversation: Conversation, event: ConversationEvent) {
     if (event.type === 'open') {
-      console.log(`open ${conversation.id}`)
+      console.log(`open: ${conversation.id}`)
       this.connections[conversation.id] = conversation
       this.eventHandler({ network: this, connectionId: conversation.id })
     } else if (event.type === 'close') {
-      console.log(`close ${conversation.id}`)
+      console.log(`close: ${conversation.id}`)
       delete this.connections[conversation.id]
       this.eventHandler({ network: this, connectionId: conversation.id })
     } else if (event.type === 'data') {
@@ -103,7 +103,13 @@ export class Meeting implements Network {
     } else if (event.type === 'extend') {
       this.extend(conversation, event.peers)
     } else if (event.type === 'forward') {
-      this.send(event.message.to, JSON.stringify(event.message))
+      const to = event.message.to
+      delete event.message.to
+      event.message.from = conversation.id
+      this.send(to, JSON.stringify(event.message))
+    } else if (event.type === 'join') {
+      console.log(`join: ${event.to}`)
+      this.accept(event.invitation)
     }
 
   }

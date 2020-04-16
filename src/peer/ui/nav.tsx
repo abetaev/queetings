@@ -5,7 +5,9 @@ import './nav.css'
 export default ({ children }) => (
   <nav>
     <span>
-      {children}
+      <div>
+        {children}
+      </div>
     </span>
   </nav>
 )

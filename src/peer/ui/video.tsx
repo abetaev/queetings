@@ -6,17 +6,22 @@ type VideoProps = {
   controls?: VNode | VNode[],
   ref?: (ref: HTMLVideoElement) => void
 } & JSX.HTMLAttributes<HTMLVideoElement>
-export const Video = ({ stream, controls, ref, ...props }: VideoProps) => (
-  <video
-    autoPlay
-    poster={NoImage}
-    ref={video => {
-      if (video && stream) {
-        video.srcObject = stream;
-        video.load();
-        video.play();
-        ref && ref(video)
-      }
-    }}
-    {...props} />
-)
+export const Video = ({ stream, controls, ref, ...props }: VideoProps) => {
+  let videoElement = null
+  return (
+    <video
+      autoPlay
+      poster={NoImage}
+      ref={video => {
+        if (video && stream) {
+          videoElement = video
+          video.srcObject = stream;
+          video.load();
+          video.play();
+          ref && ref(video)
+        }
+      }}
+      onLoad={() => videoElement && videoElement.play()}
+      {...props} />
+  )
+}
