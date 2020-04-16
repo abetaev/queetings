@@ -13,7 +13,8 @@ const bundler = new ParcelBundler(inputFile, {
   outFile,
   outDir,
   minify,
-  watch: false
+  watch: false,
+  publicUrl: './'
 })
 
 bundler.bundle()

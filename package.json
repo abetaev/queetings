@@ -11,12 +11,21 @@
     "deploy": "npm run rebuild; gcloud app deploy",
     "start": "node beacon/main.js",
     "dev": "node dev.js",
-    "test": "exit 0"
+    "test": "exit 0",
+    "run-android": "cordova run android",
+    "build-android": "cordova build android",
+    "release-android": "android.release.sh"
   },
   "author": "abetaev",
   "license": "ISC",
   "dependencies": {
+    "android-camera-permission": "^1.0.0",
+    "cordova-android": "^8.1.0",
+    "cordova-browser": "^6.0.0",
+    "cordova-plugin-android-permissions": "^1.0.2",
     "node-static": "^0.7.11",
+    "react-scripts": "^3.4.1",
+    "rimraf": "^3.0.2",
     "stun": "^2.1.0",
     "uuid": "^3.4.0",
     "ws": "^7.2.3"
@@ -33,6 +42,17 @@
     "preact": "^10.4.0",
     "preact-material-components": "^1.6.1",
     "typescript": "^3.8.3",
-    "webrtc-adapter": "^7.5.1"
+    "webrtc-adapter": "^7.5.1",
+    "cordova-plugin-whitelist": "1"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-whitelist": {},
+      "android-camera-permission": {},
+      "cordova-plugin-android-permissions": {}
+    },
+    "platforms": [
+      "browser"
+    ]
   }
 }

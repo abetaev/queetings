@@ -1,0 +1,54 @@
+{
+    "ios": {
+        "debug": {
+            "codeSignIdentity": "iPhone Distribution",
+            "provisioningProfile": "xxxxxxx-xxxxx-xxx-xxxx-xxxxx",
+            "developmentTeam": "xxxxxx",
+            "packageType": "ad-hoc",
+            "iCloudContainerEnvironment": "Development",
+            "buildFlag": [
+                "LD_RUNPATH_SEARCH_PATHS = \"@executable_path/Frameworks\""
+            ]
+        },
+        "release": {
+            "codeSignIdentity": "iPhone Distribution",
+            "provisioningProfile": "xxxxxxx-xxxxx-xxx-xxxx-xxxxx",
+            "developmentTeam": "xxxxxxx",
+            "packageType": "app-store",
+            "iCloudContainerEnvironment": "Production",
+            "buildFlag": [
+                "LD_RUNPATH_SEARCH_PATHS = \"@executable_path/Frameworks\""
+            ]
+        }
+    },
+    "android": {
+        "debug": {
+            "keystore": "./release-key.keystore",
+            "storePassword": "123",
+            "alias": "alias_name",
+            "password": "123",
+            "keystoreType": ""
+        },
+        "release": {
+            "keystore": "./release-key.keystore",
+            "storePassword": "123",
+            "alias": "alias_name",
+            "password": "123",
+            "keystoreType": ""
+        },
+        "device": {
+            "keystore": "./release-key.keystore",
+            "storePassword": "123",
+            "alias": "alias_name",
+            "password": "123",
+            "keystoreType": ""
+        },
+        "emulator": {
+            "keystore": "./release-key.keystore",
+            "storePassword": "123",
+            "alias": "alias_name",
+            "password": "123",
+            "keystoreType": ""
+        }
+    }
+}
