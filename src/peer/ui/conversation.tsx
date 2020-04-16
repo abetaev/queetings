@@ -1,29 +1,27 @@
 import { Fragment, h } from 'preact'
-import Nav from './nav'
-import { Conversation } from './network'
-import { Video } from './video'
-import { useState } from 'preact/hooks'
 import IconButton from 'preact-material-components/ts/IconButton'
+import { useState } from 'preact/hooks'
+import { Connection } from '../model'
 import Item from './item'
+import Nav from './nav'
+import { Video } from './video'
 
-type Props = { conversation: Conversation }
-export default ({ conversation }: Props) => {
+type Props = { connection: Connection }
+export default ({ connection }: Props) => {
   const [muted, mute] = useState<boolean>(false)
   function send(color: string) {
-    conversation.controlChannel.send(
-      JSON.stringify({ type: 'data', data: color })
-    )
+    connection.send(color)
   }
 
   const [color, setColor] = useState("transparent")
 
-  conversation.onData = (color) => {
-    setColor(color)
-    setTimeout(() => setColor("transparent"), 5000);
-  }
+  // connection.onData = (color) => {
+  //   setColor(color)
+  //   setTimeout(() => setColor("transparent"), 5000);
+  // }
   return (
     <Fragment>
-      <Video stream={conversation.stream} muted={muted} style={{backgroundColor: color}}/>
+      <Video stream={connection.stream} muted={muted} style={{backgroundColor: color}}/>
       <Nav>
         <Item>
           <IconButton onClick={() => send('blue')}>

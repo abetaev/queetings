@@ -3,10 +3,28 @@
  */
 
 import { h, render } from 'preact'
-import Queetings from './queetings'
 import './main.css'
+import { join } from './network'
+import Queetings from './ui'
 
-render(
-  <Queetings/>,
-  document.body
-)
+navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+  .then((stream) => {
+    const network = join(
+      stream,
+      ({ network }) => {
+        console.log('updated network')
+        console.log(network)
+        render(
+          <Queetings network={network} />,
+          document.body
+        )
+      },
+      new URL(document.URL)
+    )
+    render(
+      <Queetings network={network} />,
+      document.body
+    )
+  })
+
+

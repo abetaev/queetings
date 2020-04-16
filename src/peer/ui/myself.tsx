@@ -3,53 +3,39 @@
  * all buttons related to primary features are here
  */
 
-import { h, Fragment } from 'preact'
+import clipboard from 'clipboard-polyfill'
+import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
 import TextField, { TextFieldInput } from 'preact-material-components/ts/TextField'
-import { Meeting } from './network'
-import * as NETWORK from './network'
-import TelegramIcon from './assets/telegram.png'
-import { Video } from './video'
-import bgWhisky from './assets/bg_withkey.png'
+import { Network } from '../model'
 import bgBeer from './assets/bg_beer.png'
+import bgWhisky from './assets/bg_withkey.png'
+import TelegramIcon from './assets/telegram.png'
 import Item from './item'
 import Nav from './nav'
-import clipboard from 'clipboard-polyfill'
+import { Video } from './video'
 
-const sendTo = (meeting: Meeting, handler: (peer: string) => void) => {
-  NETWORK.issueInvitation(
-    meeting,
-    url => {
-      const documentURL = new URL(document.URL)
-      handler(`${documentURL.protocol}//${documentURL.host}/?join=${encodeURI(url.toString())}`)
-    }
-  )
-}
-function telegram(meeting: Meeting) {
-  sendTo(
-    meeting,
-    (url) => window.open(`tg://msg_url?url=${encodeURI(url)}`)
-  )
-}
-function email(meeting: Meeting) {
-  sendTo(
-    meeting,
-    (url) => window.open(`mailto:?body=${encodeURI(url)}`)
-  )
+const baseUrl = new URL('/', document.URL).toString()
+
+function wrap(url: URL): URL {
+  return new URL(`${baseUrl}?join=${encodeURI(url.toString())}`)
 }
 
-function copy(meeting: Meeting) {
-  sendTo(
-    meeting,
-    async (url) => {
-      try {
-        await clipboard.writeText(url.toString())
-        alert('link copied to clipboard')
-      } catch (error) {
-        alert(`failed to copy link: ${error}`)
-      }
-    }
-  )
+function telegram(url: URL) {
+  window.open(`tg://msg_url?url=${encodeURI(url.toString())}`)
+}
+
+function email(url: URL) {
+  window.open(`mailto:?body=${encodeURI(url.toString())}`)
+}
+
+async function copy(url: URL) {
+  try {
+    await clipboard.writeText(url.toString())
+    alert('link copied to clipboard')
+  } catch (error) {
+    alert(`failed to copy link: ${error}`)
+  }
 }
 
 function switchBrightness() {
@@ -83,16 +69,16 @@ function toggleAudio(stream: MediaStream) {
   stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled
 }
 
-export default ({ meeting }: { meeting: Meeting }) => (
+export default ({ network }: { network: Network }) => (
   <Fragment>
-    <Video stream={meeting.stream} muted />
+    <Video stream={network.stream} muted />
     <Nav>
       <TextField type="url" leadingIcon="link" dense outlined
         onChange={({ target }) => {
           try {
             const url = new URL(target.value)
             const invitation = url.protocol === 'wss' ? target.value : url.searchParams.get('join')
-            NETWORK.acceptInvitation(meeting, invitation)
+            network.accept(invitation)
           } finally {
             target.value = ""
           }
@@ -101,24 +87,24 @@ export default ({ meeting }: { meeting: Meeting }) => (
       </TextField>
       <Item>
         <Item>
-          <IconButton onClick={() => copy(meeting)}>
+          <IconButton onClick={() => network.invite(url => copy(wrap(url)))}>
             <IconButton.Icon on>link</IconButton.Icon>
             <IconButton.Icon>link</IconButton.Icon>
           </IconButton>
-          <IconButton onClick={() => email(meeting)}>
+          <IconButton onClick={() => network.invite(url => email(wrap(url)))}>
             <IconButton.Icon on>alternate_email</IconButton.Icon>
             <IconButton.Icon>alternate_email</IconButton.Icon>
           </IconButton>
-          <IconButton onClick={() => telegram(meeting)}>
+          <IconButton onClick={() => network.invite(url => telegram(wrap(url)))}>
             <img src={TelegramIcon} style={{ height: '100%' }} />
           </IconButton>
         </Item>
         <Item>
-          <IconButton onClick={() => toggleVideo(meeting.stream)}>
+          <IconButton onClick={() => toggleVideo(network.stream)}>
             <IconButton.Icon on>videocam_off</IconButton.Icon>
             <IconButton.Icon>videocam</IconButton.Icon>
           </IconButton>
-          <IconButton onClick={() => toggleAudio(meeting.stream)}>
+          <IconButton onClick={() => toggleAudio(network.stream)}>
             <IconButton.Icon on>volume_off</IconButton.Icon>
             <IconButton.Icon>volume_up</IconButton.Icon>
           </IconButton>

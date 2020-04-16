@@ -1,5 +1,5 @@
-import { issueInvite as issueInvitation, accept as acceptInvitation } from './signalling'
-import { SignallingConnection } from './signalling'
+import { issueInvite as issueInvitation, accept as acceptInvitation } from './beacon'
+import { SignallingConnection } from './beacon'
 
 export interface Connection {
   peer: RTCPeerConnection
@@ -35,7 +35,7 @@ function createPeer(dialogHandler: SignallingConnection): RTCPeerConnection {
   return peer
 }
 
-export async function inviteAt(beaconServer: string): Promise<Meeting & { inviteUrl: URL }> {
+export async function inviteAt(beaconServer: URL): Promise<Meeting & { inviteUrl: URL }> {
   const { dialogHandler, inviteUrl } = await issueInvitation(beaconServer)
   const peer = createPeer(dialogHandler)
   return {
