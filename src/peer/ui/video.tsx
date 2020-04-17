@@ -17,11 +17,9 @@ export const Video = ({ stream, controls, ref, ...props }: VideoProps) => {
           videoElement = video
           video.srcObject = stream;
           video.load();
-          video.play();
           ref && ref(video)
         }
       }}
-      onLoad={() => videoElement && videoElement.play()}
       {...props} />
   )
 }

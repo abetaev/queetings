@@ -3,46 +3,30 @@
  * all buttons related to primary features are here
  */
 
-import * as clipboard from 'clipboard-polyfill'
 import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
-import TextField, { TextFieldInput } from 'preact-material-components/ts/TextField'
 import { Network } from '../model'
 import bgBeer from './assets/bg_beer.png'
 import bgWhisky from './assets/bg_withkey.png'
-import TelegramIcon from './assets/telegram.png'
+import Copy from './features/copy'
+import Mail from './features/email'
+import Paste from './features/paste'
+import Telegram from './features/telegram'
+import Viber from './features/viber'
+import WhatsApp from './features/whatsapp'
 import Item from './item'
 import Nav from './nav'
 import { Video } from './video'
 
-const baseUrl = new URL('/', document.URL).toString()
 
-function wrap(url: URL): URL {
-  return new URL(`${baseUrl}?join=${encodeURI(url.toString())}`)
-}
+const webview = window['unweb']
 
-function telegram(url: URL) {
-  window.open(`tg://msg_url?url=${encodeURI(url.toString())}`)
-}
-
-function email(url: URL) {
-  window.open(`mailto:?body=${encodeURI(url.toString())}`)
-}
-
-async function copy(url: URL) {
-  try {
-    await clipboard.writeText(url.toString())
-    alert('link copied to clipboard')
-  } catch (error) {
-    alert(`failed to copy link: ${error}`)
-  }
-}
-let color = '#FFF'
+let color = '#000'
 function switchBrightness() {
-  if (color === "#000") {
-    color = '#FFF'
-  } else {
+  if (color === "#FFF") {
     color = '#000'
+  } else {
+    color = '#FFF'
   }
   document.body.style.backgroundColor = color;
 }
@@ -72,59 +56,35 @@ export default ({ network }: { network: Network }) => (
   <Fragment>
     <Video stream={network.stream} muted />
     <Nav>
-      <TextField type="url" leadingIcon="link" dense outlined
-        outerStyle={{
-          maxHeight: "2.2em",
-          verticalAlign: "center",
-          margin: "0",
-          padding: "0",
-          border: "none"
-        }}
-        onChange={({ target }) => {
-          try {
-            const url = new URL(target.value)
-            const invitation = url.protocol === 'wss' ? target.value : url.searchParams.get('join')
-            network.accept(invitation)
-          } finally {
-            target.value = ""
-          }
-        }} >
-        <TextFieldInput />
-      </TextField>
       <Item>
-        <Item>
-          <IconButton onClick={() => network.invite(url => copy(wrap(url)))}>
-            <IconButton.Icon on>link</IconButton.Icon>
-            <IconButton.Icon>link</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => network.invite(url => email(wrap(url)))}>
-            <IconButton.Icon on>alternate_email</IconButton.Icon>
-            <IconButton.Icon>alternate_email</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => network.invite(url => telegram(wrap(url)))}>
-            <img src={TelegramIcon} style={{ height: '100%' }} />
-          </IconButton>
-        </Item>
-        <Item>
-          <IconButton onClick={() => toggleVideo(network.stream)}>
-            <IconButton.Icon on>videocam_off</IconButton.Icon>
-            <IconButton.Icon>videocam</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => toggleAudio(network.stream)}>
-            <IconButton.Icon on>mic_off</IconButton.Icon>
-            <IconButton.Icon>mic</IconButton.Icon>
-          </IconButton>
-        </Item>
-        <Item>
-          <IconButton onClick={() => switchBackground()}>
-            <IconButton.Icon on>local_bar</IconButton.Icon>
-            <IconButton.Icon>local_bar</IconButton.Icon>
-          </IconButton>
-          <IconButton onClick={() => switchBrightness()}>
-            <IconButton.Icon on>brightness_low</IconButton.Icon>
-            <IconButton.Icon>brightness_high</IconButton.Icon>
-          </IconButton>
-        </Item>
+        <Paste network={network} />
+      </Item>
+      <Item>
+        <Mail network={network} />
+        <Copy network={network} />
+        <Telegram network={network} />
+        <Viber network={network} />
+        <WhatsApp network={network} />
+      </Item>
+      <Item>
+        <IconButton onClick={() => toggleVideo(network.stream)}>
+          <IconButton.Icon on>videocam_off</IconButton.Icon>
+          <IconButton.Icon>videocam</IconButton.Icon>
+        </IconButton>
+        <IconButton onClick={() => toggleAudio(network.stream)}>
+          <IconButton.Icon on>mic_off</IconButton.Icon>
+          <IconButton.Icon>mic</IconButton.Icon>
+        </IconButton>
+      </Item>
+      <Item>
+        <IconButton onClick={() => switchBackground()}>
+          <IconButton.Icon on>local_bar</IconButton.Icon>
+          <IconButton.Icon>local_bar</IconButton.Icon>
+        </IconButton>
+        <IconButton onClick={() => switchBrightness()}>
+          <IconButton.Icon on>brightness_low</IconButton.Icon>
+          <IconButton.Icon>brightness_high</IconButton.Icon>
+        </IconButton>
       </Item>
     </Nav>
   </Fragment>

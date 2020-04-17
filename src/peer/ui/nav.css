@@ -1,3 +1,4 @@
+/* The animation code */
 nav {
   display: table;
   position: absolute;
@@ -10,15 +11,21 @@ nav {
 }
 
 nav > span {
-  display: none;
-  vertical-align: middle;
-}
-
-nav:hover > span {
+  vertical-align: bottom;
   display: table-cell;
 }
 
-nav:hover > span > div {
-  background-color: #FFF3;
+nav > span > div {
   align-items: center;
+  opacity: 0;
+  transition: 0.3s;
 }
+nav:hover > span > div {
+  opacity: 1;
+}
+
+@keyframes rollup {
+  from { height: 0px; }
+  to { height: min-content; }
+}
+

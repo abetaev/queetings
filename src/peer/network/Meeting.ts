@@ -9,12 +9,15 @@ export class Meeting implements Network {
   public readonly connections: { [id: string]: Connection } = {};
   public readonly id: string = uuid();
 
+  private readonly beaconServer: URL
+
   constructor(
     public readonly stream: MediaStream,
-    private readonly beaconServer: URL,
+    url: URL,
     private readonly eventHandler: NetworkEventHandler,
-    readonly invitation?: URL
   ) {
+    this.beaconServer = convertToBeaconUrl(url)
+    const invitation = extractInvitation(url)
     invitation && this.accept(invitation)
   }
 
@@ -96,8 +99,8 @@ export class Meeting implements Network {
       this.eventHandler({ network: this, connectionId: conversation.id })
     } else if (event.type === 'data') {
       this.eventHandler({
-        connectionId: conversation.id,
         network: this,
+        connectionId: conversation.id,
         data: event.data
       })
     } else if (event.type === 'extend') {
@@ -114,4 +117,15 @@ export class Meeting implements Network {
 
   }
 
+}
+
+function extractInvitation(url: URL): URL | undefined {
+  const join = url.searchParams.get("join")
+  if (join) {
+    return new URL(join)
+  }
+}
+
+function convertToBeaconUrl(url: URL): URL {
+  return new URL(`wss://${url.host}`)
 }
