@@ -2,6 +2,7 @@ span.item {
   display: inline-block;
   white-space: nowrap;
   background-color: #FFF3;
+  margin-top: 1em;
 }
 
 span.item:not(:first-of-type){

@@ -136,7 +136,7 @@ export class Conversation implements Connection {
 
   send(message: ControlMessage | string) {
     if (typeof message === "string") {
-      this.control.send(message)
+      this.control.send(JSON.stringify({ type: "data", data: message }))
     } else {
       this.control.send(JSON.stringify(message))
     }

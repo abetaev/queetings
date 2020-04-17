@@ -10,3 +10,12 @@ body {
   overflow: hidden;
   background-color: #000;
 }
+
+button.enter {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  color: #FFF;
+  cursor: pointer;
+  font-size: xx-large;
+}
