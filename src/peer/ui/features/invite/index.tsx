@@ -41,6 +41,7 @@ export async function copy(url: URL) {
 export default ({ network }: { network: Network }) => {
   type InviteButtonProps = {
     callback: (url: URL) => void
+    disabled?: boolean
   } & ({
     image: string
     icon?: undefined
@@ -48,7 +49,7 @@ export default ({ network }: { network: Network }) => {
     icon: string
     image?: undefined
   })
-  const InviteButton = (props: InviteButtonProps) => (
+  const InviteButton = (props: InviteButtonProps) => props.disabled ? null : (
     <IconButton onClick={() => network.invite(
       (url: URL) => props.callback(wrap(url))
     )}>
@@ -64,7 +65,7 @@ export default ({ network }: { network: Network }) => {
   )
   return (
     <Item>
-      <InviteButton icon="link" callback={copy} />
+      <InviteButton icon="link" callback={copy} disabled={window['webview']}/>
       <InviteButton icon="email" callback={email} />
       <InviteButton image={TelegramIcon} callback={telegram} />
       <InviteButton image={ViberIcon} callback={viber} />
