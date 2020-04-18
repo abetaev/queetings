@@ -11,12 +11,6 @@ function whatsapp(url: URL) {
 
 export default ({ network }: { network: Network }) => (
   <IconButton onClick={() => network.invite(url => whatsapp(wrap(url)))}>
-    <img src={Icon} style={{
-        height: "30px",
-        width: "30px",
-        position: "absolute",
-        top: "9px",
-        left: "9px"
-    }} />
+    <img src={Icon} style={{height: "100%"}} />
   </IconButton>
 )
