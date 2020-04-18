@@ -67,16 +67,15 @@ export class Conversation implements Connection {
       this.eventHandler(this, { type: 'join', to: message.from, invitation: new URL(message.invitation) })
       return
     } else if (message.type === "echo") {
-      if (this.echoes === 0) {
-        this.eventHandler(this, { type: 'extend', peers: message.peers });
-      }
       this.echoes++;
+      this.eventHandler(this, { type: 'extend', peers: message.peers });
       return
     } else if (message.type === "data") {
       this.eventHandler(this, message)
       return
     }
 
+    console.log(`unexpected message: ${JSON.stringify(message)}`)
     this.close()
 
   }
@@ -136,7 +135,7 @@ export class Conversation implements Connection {
 
   send(message: ControlMessage | string) {
     if (typeof message === "string") {
-      this.control.send(JSON.stringify({ type: "data", data: message }))
+      this.control.send(JSON.stringify({ type: 'data', data: message }))
     } else {
       this.control.send(JSON.stringify(message))
     }

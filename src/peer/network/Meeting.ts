@@ -1,12 +1,12 @@
 import { v4 as uuid } from 'uuid';
 import { Connection, InvitationHandler, Network, NetworkEventHandler } from "../model";
-import { Conversation, ConversationEvent } from "./Conversation";
+import { Conversation, ConversationEvent, ControlMessage } from "./Conversation";
 import { inviteAt, meet } from "./webrtc";
 
 
 export class Meeting implements Network {
 
-  public readonly connections: { [id: string]: Connection } = {};
+  public readonly connections: { [id: string]: Conversation } = {};
   public readonly id: string = uuid();
 
   private readonly beaconServer: URL
@@ -53,6 +53,14 @@ export class Meeting implements Network {
     })
   }
 
+  quit() {
+    this.stream.getTracks()
+      .forEach(track => track.stop())
+    Object.values(this.connections)
+      .forEach(connection => connection.close())
+    this.eventHandler({})
+  }
+
   private publish(peer: RTCPeerConnection) {
     this.stream.getTracks()
       .forEach(track => peer.addTrack(track, this.stream))
@@ -66,7 +74,7 @@ export class Meeting implements Network {
     delete this.connections[conversationId]
   }
 
-  send(to: string, message: string) {
+  private send(to: string, message: ControlMessage) {
     const conversation = this.connections[to]
     if (conversation) {
       conversation.send(message);
@@ -76,7 +84,7 @@ export class Meeting implements Network {
     }
   }
 
-  extend(conversation: Conversation, newPeers: string[]) {
+  private extend(conversation: Conversation, newPeers: string[]) {
     const knownPeers = this.peers()
     newPeers.filter(id => !knownPeers.includes(id) && id !== this.id)
       .forEach(id => this.invite(
@@ -109,7 +117,7 @@ export class Meeting implements Network {
       const to = event.message.to
       delete event.message.to
       event.message.from = conversation.id
-      this.send(to, JSON.stringify(event.message))
+      this.send(to, event.message)
     } else if (event.type === 'join') {
       console.log(`join: ${event.to}`)
       this.accept(event.invitation)
