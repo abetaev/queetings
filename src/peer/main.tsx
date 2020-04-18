@@ -7,7 +7,6 @@ import './main.css'
 import { join } from './network'
 import UI from './ui'
 import { Network, NetworkEvent } from './model';
-import fixWebAudio from './fixWebAudio'
 
 class Queetings extends Component<{}, { network: Network, message?: { from: string, data: string } }> {
 
@@ -21,6 +20,9 @@ class Queetings extends Component<{}, { network: Network, message?: { from: stri
         onClick={() => {
           navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then((stream) => {
+              if (window['webview']) {
+                stream.getAudioTracks()[0].stop()
+              }
               const network = join(
                 stream,
                 event => this.handle(event),
@@ -46,7 +48,6 @@ class Queetings extends Component<{}, { network: Network, message?: { from: stri
 
 }
 
-setTimeout(() => fixWebAudio(), 2000)
 setTimeout(() => render(
   <Queetings />,
   document.body
