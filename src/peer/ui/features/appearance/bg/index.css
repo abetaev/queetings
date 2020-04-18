@@ -1,0 +1,23 @@
+body.bg-bar {
+  background-image: url('./bar.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+body.bg-bar-t {
+  background-image: url('./bar.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+body.bg-bar-t > * {
+  opacity: 0.7;
+}
+
+body.bg-beer {
+  background-image: url('./beer.png')
+}
+
+body.bg-wisky {
+  background-image: url('./wisky.png')
+}

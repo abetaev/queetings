@@ -1,16 +1,4 @@
-* {
-  padding: 0;
-  margin: 0;
-  border: none;
-}
-
-html { -webkit-text-size-adjust: none; }
-
-body {
-  overflow: hidden;
-  background-color: #000;
-}
-
+/* maybe add background and animate it? */
 button.enter {
   width: 100vw;
   height: 100vh;
