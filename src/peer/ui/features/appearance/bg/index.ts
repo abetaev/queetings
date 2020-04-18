@@ -1,8 +1,8 @@
 import './index.css'
 import { rollingStyles } from '..'
 
-const backgrounds = ['bg-bar', 'bg-bar-t', 'bg-beer', 'bg-wisky']
+const backgrounds = ['bar', 'beer', 'wisky', 'empty']
 
-export function switchBackground() {
+export default function() {
   rollingStyles(document.body, backgrounds)
 }

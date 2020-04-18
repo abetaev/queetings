@@ -5,3 +5,7 @@ body.light {
 body.dark {
   background-color: #000;
 }
+
+body.dark .mdc-icon-button__icon.material-icons {
+  filter: invert(1);
+}
