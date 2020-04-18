@@ -1,5 +1,5 @@
 import { h, JSX, VNode } from 'preact'
-import NoImage from './assets/novideo.png'
+import NoImage from './assets/novideo_white.png'
 
 type VideoProps = {
   stream?: MediaStream,

@@ -1,0 +1,16 @@
+* {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+html { -webkit-text-size-adjust: none; }
+
+body {
+  overflow: hidden;
+  background-color: #000;
+}
+
+.mdc-icon-button__icon.material-icons {
+  filter: invert(1);
+}
