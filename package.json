@@ -31,7 +31,6 @@
     "jest": "^25.3.0",
     "node-watch": "^0.6.3",
     "parcel-bundler": "^1.12.4",
-    "postcss-camel-case": "^1.0.1",
     "postcss-modules": "^2.0.0",
     "preact": "^10.4.0",
     "preact-material-components": "^1.6.1",
