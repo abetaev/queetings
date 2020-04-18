@@ -3,7 +3,6 @@ import { h, Fragment } from 'preact';
 import IconButton from "preact-material-components/ts/IconButton";
 import { Network } from "../../../model";
 import Item from "../../item";
-import EmailIcon from './email.png';
 import TelegramIcon from './telegram.png';
 import ViberIcon from './viber.png';
 import WhatsappIcon from './whatsapp.png';
@@ -40,7 +39,7 @@ export async function copy(url: URL) {
 }
 
 export default ({ network }: { network: Network }) => {
-  type ShareButtonProps = {
+  type InviteButtonProps = {
     callback: (url: URL) => void
   } & ({
     image: string
@@ -49,7 +48,7 @@ export default ({ network }: { network: Network }) => {
     icon: string
     image?: undefined
   })
-  const ShareButton = (props: ShareButtonProps) => (
+  const InviteButton = (props: InviteButtonProps) => (
     <IconButton onClick={() => network.invite(
       (url: URL) => props.callback(wrap(url))
     )}>
@@ -65,11 +64,11 @@ export default ({ network }: { network: Network }) => {
   )
   return (
     <Item>
-      <ShareButton icon="link" callback={copy} />
-      <ShareButton icon="email" callback={email} />
-      <ShareButton image={TelegramIcon} callback={telegram} />
-      <ShareButton image={ViberIcon} callback={viber} />
-      <ShareButton image={WhatsappIcon} callback={whatsapp} />
+      <InviteButton icon="link" callback={copy} />
+      <InviteButton icon="email" callback={email} />
+      <InviteButton image={TelegramIcon} callback={telegram} />
+      <InviteButton image={ViberIcon} callback={viber} />
+      <InviteButton image={WhatsappIcon} callback={whatsapp} />
     </Item>
   )
 }

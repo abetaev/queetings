@@ -1,0 +1,12 @@
+* {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+html { -webkit-text-size-adjust: none; }
+
+body {
+  overflow: hidden;
+  background-color: #000;
+}

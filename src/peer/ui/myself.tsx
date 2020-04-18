@@ -6,7 +6,7 @@
 import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
 import { Network } from '../model'
-import Paste from './features/paste'
+import Accept from './features/accept'
 import Item from './item'
 import Nav from './nav'
 
@@ -20,9 +20,7 @@ export default ({ network }: { network: Network }) => (
   <Fragment>
     <Video stream={network.stream} muted />
     <Nav>
-      <Item>
-        <Paste network={network} />
-      </Item>
+      <Accept network={network} />
       <Invite network={network} />
       <Stream stream={network.stream} />
       <Appearance />
