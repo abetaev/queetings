@@ -2,53 +2,67 @@
  * entry point
  */
 
-import { h, render, Component } from 'preact'
+import { h, render } from 'preact'
 import './main.css'
-import { join } from './network'
 import UI from './ui'
 import { Network, NetworkEvent } from './model';
+import { useCallback, useState } from 'preact/hooks';
+import { Meeting } from './network/Meeting';
 
-class Queetings extends Component<{}, { network: Network, message?: { from: string, data: string } }> {
-
-  render() {
-    if (this.state.network) {
-      window['network'] = this.state.network
-      return <UI network={this.state.network} message={this.state.message} />
-    } else {
-      return <button
-        class="enter"
-        onClick={() => {
-          navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            .then((stream) => {
-              if (window['webview']) {
-                stream.getAudioTracks()[0].stop()
-              }
-              const network = join(
-                stream,
-                event => this.handle(event),
-                new URL(document.URL)
-              )
-              this.setState({ network })
-            })
-        }}>video BAR</button>
-    }
+type Connection = {
+  network?: Network
+  message?: {
+    from: string
+    data: string
   }
+}
 
-  handle({ network, connectionId, data }: NetworkEvent) {
-    if (network.connections[connectionId]) {
+function useConnection() {
+  const [connection, setConnection] = useState<Connection>({})
+  function handle({ network, connectionId, data }: NetworkEvent) {
+    if (!network) {
+      setConnection({})
+    } else if (network.connections[connectionId]) {
       if (data) {
-        this.setState({ network, message: { from: connectionId, data } })
+        setConnection({ network, message: { from: connectionId, data } })
       } else {
-        this.setState({ network })
+        setConnection({ network })
       }
     } else {
-      this.setState({ network })
+      setConnection({ network })
     }
   }
 
+  const join = useCallback(() => {
+    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      .then((stream) => {
+        if (window['webview']) {
+          stream.getAudioTracks()[0].stop()
+        }
+        setConnection({
+          network: new Meeting(
+            stream,
+            new URL(document.URL),
+            event => handle(event)
+          )
+        })
+      })
+  }, [connection.network])
+
+  return { connection, join }
+}
+
+const Network = () => {
+  const { connection, join } = useConnection()
+  if (connection.network) {
+    window['network'] = connection.network
+    return <UI network={connection.network} message={connection.message} />
+  } else {
+    return <button class="enter" onClick={join}>video BAR</button>
+  }
 }
 
 setTimeout(() => render(
-  <Queetings />,
+  <Network />,
   document.body
-), 1000)
+), 500)

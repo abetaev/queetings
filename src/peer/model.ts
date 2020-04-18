@@ -15,6 +15,11 @@ export interface Connection {
    * send arbitrary data
    */
   send(data: string): void
+
+  /**
+   * free resources network connection
+   */
+  close(): void
 }
 
 /**
@@ -44,6 +49,11 @@ export interface Network {
    * invite into network
    */
   invite(handler: InvitationHandler): void
+
+  /**
+   * quit network
+   */
+  quit(): void
 }
 export type InvitationHandler = (invitation: URL) => void
 
@@ -61,11 +71,11 @@ export interface NetworkEvent {
   /**
    * network where even occured
    */
-  readonly network: Network
+  readonly network?: Network
   /**
    * id of related connection
    */
-  readonly connectionId: string
+  readonly connectionId?: string
   /**
    * arbitrary text data
    */
