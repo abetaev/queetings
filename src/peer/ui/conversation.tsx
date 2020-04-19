@@ -9,13 +9,15 @@ import { Video } from './video'
 type Props = { connection: Connection, message?: string }
 export default ({ connection, message }: Props) => {
   const [muted, mute] = useState<boolean>(false)
-  const [{ color, colorLock }, setColor] = useState({ color: "transparent", colorLock: "transparent" })
-  if (message && message !== colorLock) {
-    setColor({ color: message, colorLock: message })
+  let [color, setColor] = useState("transparent")
+  if (message && message !== color) {
+    color = message;
     setTimeout(
-      () => setColor({ color: "transparent", colorLock: message }),
+      () => setColor(message),
       5000
     )
+  } else {
+    color = "transparent";
   }
   return (
     <Fragment>

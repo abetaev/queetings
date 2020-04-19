@@ -2,12 +2,13 @@
  * entry point
  */
 
-import { h, render } from 'preact'
-import './main.css'
-import UI from './ui'
-import { Network, NetworkEvent } from './model';
+import { h, render } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
+import './main.css';
+import { Network, NetworkEvent } from './model';
 import { Meeting } from './network/Meeting';
+import PrivacyPolicy from './PrivacyPolicy';
+import UI from './ui';
 
 type Connection = {
   network?: Network
@@ -62,7 +63,16 @@ const Network = () => {
   }
 }
 
+const View = () => (
+  new URL(document.URL).searchParams.get("privacyPolicy") !== null ? (
+    <PrivacyPolicy />
+  ) : (
+      <Network />
+    )
+)
+
+
 setTimeout(() => render(
-  <Network />,
+  <View />,
   document.body
 ), 500)
