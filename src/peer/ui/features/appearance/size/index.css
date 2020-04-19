@@ -1,0 +1,7 @@
+body.mini main > div {
+  margin: 5%;
+}
+
+body.maxi main > div {
+  margin: 0;
+}

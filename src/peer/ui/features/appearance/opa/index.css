@@ -1,9 +1,13 @@
+body.opaque_3 > main {
+  opacity: 0.68;
+}
+
 body.opaque_2 > main {
-  opacity: 0.85;
+  opacity: 0.84;
 }
 
 body.opaque_1 > main {
-  opacity: 0.95;
+  opacity: 0.96;
 }
 
 body.opaque > main {

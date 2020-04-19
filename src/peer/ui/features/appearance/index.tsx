@@ -4,6 +4,7 @@ import Item from '../../item'
 import switchBackground from './bg'
 import toggleLights from './light'
 import toggleOpacity from './opa'
+import toggleSize from './size'
 
 export const rollingStyles = (element: HTMLElement, themes: string[]) => {
   const classes = element.classList
@@ -35,6 +36,7 @@ export default () => (
       <Button icon="brightness_low" icon2="brightness_high"
             handler={() => toggleLights()} />
       <Button icon="opacity" handler={() => toggleOpacity()} />
+      <Button icon="aspect_ratio" handler={() => toggleSize()} />
     </Item>
   </Fragment>
 )

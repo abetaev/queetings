@@ -1,3 +1,7 @@
+body.empty {
+  background: none;
+}
+
 body.bar {
   background-image: url('./bar.jpg');
   background-size: cover;
