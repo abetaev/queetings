@@ -1,0 +1,13 @@
+.bodyBackgroundBar {
+    background-image: url("./assets/bg_bar.jpg");
+    background-repeat: no-repeat;
+    background-position: bottom;
+}
+
+.bodyBackgroundBeer {
+    background-image: url("./assets/bg_beer.png");
+}
+
+.bodyBackgroundWhiskey {
+    background-image: url("./assets/bg_whiskey.png");
+}

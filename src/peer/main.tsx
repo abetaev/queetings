@@ -3,7 +3,8 @@
  */
 
 import { h, render, Component } from 'preact'
-import './main.css'
+import './global.css'
+import * as styles from './main.css'
 import { join } from './network'
 import UI from './ui'
 import { Network, NetworkEvent } from './model';
@@ -17,7 +18,7 @@ class Queetings extends Component<{}, { network: Network, message?: { from: stri
       return <UI network={this.state.network} message={this.state.message} />
     } else {
       return <button
-        class="enter"
+        class={styles.enter}
         onClick={() => {
           navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then((stream) => {

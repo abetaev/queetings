@@ -1,8 +1,8 @@
 import { h } from 'preact'
-import './item.css'
+import * as styles from './item.css'
 
 export default ({ children }) => (
-  <span class="item">
+  <span class={styles.item}>
     {children}
   </span>
 )

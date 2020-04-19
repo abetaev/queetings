@@ -7,4 +7,5 @@ span.item {
 
 span.item:not(:first-of-type){
   margin-left: 1em;
+  border-radius: 10px;
 }

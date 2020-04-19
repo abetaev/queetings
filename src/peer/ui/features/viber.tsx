@@ -10,6 +10,6 @@ function viber(url: URL) {
 
 export default ({ network }: { network: Network }) => (
   <IconButton onClick={() => network.invite(url => viber(wrap(url)))}>
-    <img src={Icon} style={{ height: "100%" }} />
+    <img src={Icon} style={{height: "100%"}} />
   </IconButton>
 )

@@ -1,10 +1,11 @@
-import { Fragment, h } from 'preact'
+import {Fragment, h} from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
-import { useState } from 'preact/hooks'
-import { Connection } from '../model'
+import {useState} from 'preact/hooks'
+import {Connection} from '../model'
 import Item from './item'
 import Nav from './nav'
-import { Video } from './video'
+import {Video} from './video'
+import {EventEmitter, EventTypes} from "./events/eventEmitter";
 
 type Props = { connection: Connection, message?: string }
 export default ({ connection, message }: Props) => {
@@ -17,9 +18,11 @@ export default ({ connection, message }: Props) => {
       5000
     )
   }
+  const [barVideoCssOptions, setBarVideoCssOptions] = useState({ opacity: 1 })
+  EventEmitter.subscribe(EventTypes.BAR_VIEW_DECORATION_IS_CHANGED, setBarVideoCssOptions)
   return (
     <Fragment>
-      <Video stream={connection.stream} muted={muted} style={{ backgroundColor: color }} />
+      <Video stream={connection.stream} muted={muted} style={{ ...barVideoCssOptions, backgroundColor: color }} />
       <Nav>
         <Item>
           <IconButton onClick={() => mute(!muted)}>
