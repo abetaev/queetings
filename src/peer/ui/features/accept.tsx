@@ -6,12 +6,6 @@ import Item from '../item';
 export default ({ network }: { network: Network }) => window['webview'] ? null : (
   <Item>
     <TextField type="url" leadingIcon="link" dense outlined
-      outerStyle={{
-        maxHeight: "2.2em",
-        margin: "0",
-        padding: "0",
-        border: "none"
-      }}
       onChange={({ target }) => {
         try {
           const url = new URL(target.value)

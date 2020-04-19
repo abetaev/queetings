@@ -2,9 +2,8 @@ span.item {
   display: inline-block;
   white-space: nowrap;
   background-color: #FFF3;
-  margin-top: 1em;
-}
-
-span.item:not(:first-of-type){
-  margin-left: 1em;
+  margin: 0.5em;
+  height: 3;
+  vertical-align: middle;
+  border-radius: 0.4em;
 }
