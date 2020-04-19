@@ -63,13 +63,14 @@ export default ({ network }: { network: Network }) => {
         )}
     </IconButton>
   )
+  const webview = window['webview']
   return (
     <Item>
-      <InviteButton icon="link" callback={copy} disabled={window['webview']}/>
+      <InviteButton icon="link" callback={copy} disabled={webview} />
       <InviteButton icon="email" callback={email} />
       <InviteButton image={TelegramIcon} callback={telegram} />
-      <InviteButton image={ViberIcon} callback={viber} />
-      <InviteButton image={WhatsappIcon} callback={whatsapp} />
+      <InviteButton image={ViberIcon} callback={viber} disabled={!webview} />
+      <InviteButton image={WhatsappIcon} callback={whatsapp} disabled={!webview} />
     </Item>
   )
 }
