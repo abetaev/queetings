@@ -34,20 +34,17 @@ function useConnection() {
     }
   }
 
-  const join = useCallback(() => {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      .then((stream) => {
-        if (window['webview']) {
-          stream.getAudioTracks()[0].stop()
-        }
-        setConnection({
-          network: new Meeting(
-            stream,
-            new URL(document.URL),
-            event => handle(event)
-          )
-        })
-      })
+  const join = useCallback(async () => {
+    (await navigator.mediaDevices.getUserMedia({ audio: true }))
+      .getAudioTracks().forEach(track => track.stop())
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    setConnection({
+      network: new Meeting(
+        stream,
+        new URL(document.URL),
+        event => handle(event)
+      )
+    })
   }, [connection.network])
 
   return { connection, join }
@@ -64,7 +61,7 @@ const Network = () => {
 }
 
 const View = () => (
-  new URL(document.URL).searchParams.get("privacyPolicy") !== null ? (
+  new URL(document.URL).searchParams.get("privacy") !== null ? (
     <PrivacyPolicy />
   ) : (
       <Network />
