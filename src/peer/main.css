@@ -7,3 +7,14 @@ button.enter {
   cursor: pointer;
   font-size: xx-large;
 }
+
+button.enter:hover {
+  transition: 0.25s;
+  transform: scale(1.05);
+}
+
+button.enter:focus {
+  color: #FFF0;
+  transition: 0.75s;
+  transform: scale(4.0);
+}

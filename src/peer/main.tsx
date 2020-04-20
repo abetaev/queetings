@@ -56,7 +56,7 @@ const Network = () => {
     window['network'] = connection.network
     return <UI network={connection.network} message={connection.message} />
   } else {
-    return <button class="enter" onClick={join}>video BAR</button>
+    return <button class="enter" onClick={() => setTimeout(join, 500)}>enter BAR</button>
   }
 }
 
