@@ -7,10 +7,6 @@ body.dark {
   color: #EFF;
 }
 
-body.dark .mdc-icon-button__icon.material-icons {
-  filter: invert(1);
-}
-
 body.dark a {
   filter: invert(1);
 }
