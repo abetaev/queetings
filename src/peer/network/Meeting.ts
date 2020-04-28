@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { Connection, InvitationHandler, Network, NetworkEventHandler } from "../model";
+import { InvitationHandler, Network, NetworkEventHandler } from "../model";
 import { Conversation, ConversationEvent, ControlMessage } from "./Conversation";
 import { inviteAt, meet } from "./webrtc";
 

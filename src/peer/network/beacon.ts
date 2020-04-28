@@ -1,5 +1,5 @@
 export type SignallingConnection = {
-  onMessage: (receiver: (event: MessageEvent) => Promise<void>) => void,
+  receiveMessage: (receiver: (event: MessageEvent) => Promise<void>) => void,
   sendMessage: (message: any) => void
 }
 
@@ -31,6 +31,6 @@ export async function accept(invitation: string): Promise<SignallingConnection> 
 }
 
 const handler = (socket: WebSocket): SignallingConnection => ({
-  onMessage: (receiver) => socket.onmessage = ({ data }) => receiver(JSON.parse(data)),
+  receiveMessage: (receiver) => socket.onmessage = ({ data }) => receiver(JSON.parse(data)),
   sendMessage: (message) => socket.send(JSON.stringify(message))
 })

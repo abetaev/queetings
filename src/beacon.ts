@@ -44,7 +44,8 @@ wsServer.on('connection', (socket, request) => {
   if (!invitation) {
     invitation = uuid()
     hosts[invitation] = socket
-    socket.send(invitation)
+    const url = `wss://${request.headers['host']}/${invitation}`
+    socket.send(JSON.stringify({ type: 'invite', url }))
     log(`create ${invitation}`)
   } else if (hosts[invitation]) {
     meet(hosts[invitation], socket)

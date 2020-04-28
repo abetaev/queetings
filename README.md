@@ -1,11 +1,19 @@
-queetings
-=========
+brochain
+========
 
-[this is very-very-very-draft]
+my philosofy is simple: we have all the technology to be able to deliver
+justice as superposition of all justices of primal cultural broth. we are
+ready to perform revolution from inside with tools we have already created.
 
-serverless web-conferences with unimaginable client agility
+we just need to have some understanding to where should we go. and this is
+the compass i am going to do.
 
-not a lot of details yet, open mind is the source of 'em!
+моя философия проста: существуют все технологии, способные осуществить
+справедливость как суперпозицию справедливостей всего первичного бульона
+культур. мы готовы совершить ревлюцию изнутри созданными нами инструментами.
+
+нам только надо немножко осознать, в какую сторону мы для этого должны пойти.
+здесь -- компас, который укажет путь.
 
 usage
 -----

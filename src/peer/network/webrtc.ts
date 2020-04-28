@@ -1,10 +1,4 @@
-import { issueInvite as issueInvitation, accept as acceptInvitation } from './beacon'
-import { SignallingConnection } from './beacon'
-
-export interface Connection {
-  peer: RTCPeerConnection
-  ctrl: RTCDataChannel
-}
+import { accept, issueInvite as issueInvitation, SignallingConnection } from './beacon';
 
 const rtcConfiguration: RTCConfiguration = {
   iceServers: [{
@@ -46,7 +40,7 @@ export async function inviteAt(beaconServer: URL): Promise<Meeting & { inviteUrl
 }
 
 export async function meet(inviteUrl: URL): Promise<Meeting> {
-  const dialogHandler = await acceptInvitation(inviteUrl.toString())
+  const dialogHandler = await accept(inviteUrl.toString())
   const peer = createPeer(dialogHandler)
   return {
     peer,
@@ -69,11 +63,11 @@ type AnswerEvent = { type: "answer" } & MessageEvent
 
 async function handlePeerDialog(
   peer: RTCPeerConnection,
-  { onMessage, sendMessage }: SignallingConnection
+  { receiveMessage, sendMessage }: SignallingConnection
 ) {
   console.log('handling peer dialog')
   await new Promise((resolve, reject) => {
-    onMessage(
+    receiveMessage(
       async (event: CandidateEvent | OfferEvent | AnswerEvent | ErrorEvent) => {
 
         const { type } = event;

@@ -10,6 +10,7 @@
     "rebuild": "npm run clean; npm run build",
     "deploy": "npm run rebuild; gcloud app deploy",
     "start": "node beacon/main.js",
+    "stop": "ps x | grep 'node beacon/main.js' | awk '{system(\"kill \"$1)}'",
     "dev": "node dev.js",
     "test": "exit 0"
   },

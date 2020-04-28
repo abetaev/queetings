@@ -4,7 +4,11 @@ let peerUpdated = true
 let beaconUpdated = true
 
 function log(message) {
-  console.log(new Date(), message)
+  if (typeof message === 'string') {
+    console.log(new Date(), message)
+  } else {
+    console.error(new Date(), decoder.decode(message))
+  }
 }
 
 function runEvery(operation, interval) {
@@ -16,13 +20,13 @@ function runEvery(operation, interval) {
 
 const decoder = new TextDecoder();
 
-const { exec, execSync } = require('child_process')
+const { spawn, execSync } = require('child_process')
 
 const startBeacon = () => {
   log('building beacon...')
-  console.log(decoder.decode(execSync("npm run build-beacon")))
+  log(execSync("npm run build-beacon"))
   log('starting beacon')
-  return exec('npm start')
+  return spawn('npm', ['start'])
 }
 let beacon;
 
@@ -33,7 +37,7 @@ runEvery(async () => {
     try {
       log('updating peer...')
       const output = execSync("npm run build-peer");
-      log(`peer updates:\n${decoder.decode(output)}`)
+      log(decoder.decode(output))
     } catch (error) {
       log(`peer update failed: ${error.toString()}`)
     }
@@ -42,12 +46,10 @@ runEvery(async () => {
     beaconUpdated = false;
     try {
       if (beacon) {
-        log('killing beacon...')
-        beacon.kill()
-        log('updating beacon...')
-      } else {
-        log('starting beacon...')
+        log('stopping beacon...')
+        log(execSync("npm stop"))
       }
+      log('starting beacon...')
       beacon = startBeacon()
       beacon.stdout.on('data', log)
     } catch (error) {
