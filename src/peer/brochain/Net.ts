@@ -1,43 +1,39 @@
 /**
- * discovery
+ * environment
  */
 
 import Chain, { Event as ChainEvent } from './Chain'
 
-interface DiscoveryRequestMessage {
-  type: 'discover'
+export type NetEvent = { net: Net } & ChainEvent
+export type ServiceEvent<T> = { net: Net, type: string, data: T }
+export type Event =
+  NetEvent
+  | ServiceEvent<any>
+
+export type MessageSender<T> = (message: T) => void
+export interface Service<M> {
+  readonly name: string
+  onNet?(event: NetEvent, reply: MessageSender<M>): void
+  onService?(net: Net, event: M): void
+  receive?(net: Net, route: string[], message: M, reply: MessageSender<M>): void
 }
-interface DiscoveryResponseMessage {
-  type: 'discovery'
-  discovery: string[]
+
+interface Typed {
+  type: string
 }
-interface DataMessage<T> {
-  type: 'data'
-  data: T
-}
-type Message =
-  DiscoveryRequestMessage
-  | DiscoveryResponseMessage
 
-interface InviteEvent {
-  type: 'invite'
-  url: URL
-}
-type Handler = (url: URL) => void
+export default class Net {
 
-type SpaceMap = { [id: string]: { knows: string[], state: 'active' | 'inactive' } }
+  public readonly chain: Chain<{ type: string }>
 
-export default class {
-
-  public readonly chain: Chain<Message>
-
-  private readonly spaceMap: SpaceMap = {}
+  private readonly services: Service<{ type: string }>[]
 
   constructor(
-    private handler: Handler,
+    services: Service<{ type: string }>[],
     stunURLs: URL[]
   ) {
-    this.chain = new Chain<Message>(
+    this.services = services
+    this.chain = new Chain<{ type: string }>(
       async (event) => await this.on(event),
       (from, event) => this.receive(from, event),
       stunURLs
@@ -45,42 +41,21 @@ export default class {
   }
 
   private async on(event: ChainEvent): Promise<void> {
-    switch (event.type) {
-      case 'invite':
-        this.handler(event.url)
-        break;
-      case 'join':
-        this.spaceMap[event.from] = {
-          knows: [],
-          state: 'active'
-        }
-        console.log('sending discovery')
-        this.chain.send({ type: 'discover' }, [event.from])
-        break;
-      case 'call':
-        // take all by now..
-        console.log(`taking call from ${event.from}`)
-        await event.take()
-        break;
-    }
+    Object.values(this.services)
+      .forEach(({ onNet }) => onNet && onNet(
+        Object.assign({ net: this }, event),
+        msg => this.chain.send(msg, [event.from])
+      ))
   }
 
-  private receive(route: string[], event: Message): void {
-    switch (event.type) {
-      case 'discover':
-        this.chain.send({
-          type: 'discovery',
-          discovery: this.chain.known()
-        }, route)
-        break;
-      case 'discovery':
-        const known = this.chain.known()
-        event.discovery
-          .filter(id => id !== this.chain.id)
-          .filter(id => !known.includes(id))
-          .forEach(id => this.chain.join(new URL(`bro:${route.join('/')}/${id}`)))
-        break;
-    }
+  private receive(route: string[], message: Typed & any): void {
+    Object.values(this.services)
+      .forEach(({receive}) => receive && receive(this, route, message, msg => this.chain.send(msg, route)))
+  }
+
+  public emit(event: Typed & any) {
+    Object.values(this.services)
+      .forEach(({ onService }) => onService && onService(this, event))
   }
 
 }

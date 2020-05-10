@@ -1,6 +1,6 @@
 import { h, render, Fragment } from 'preact'
 
-import BroNet from './brochain'
+import brochain, { NetEvent } from './brochain'
 
 const toURL = (url: string) => new URL(url)
 const notNull = (v: any) => v != null
@@ -14,11 +14,15 @@ const joinURLs = [
 
 const [joinURL] = joinURLs
 
-const net = (
-  window['net'] = new BroNet(
-    url => alert(`${documentURL.protocol}//${documentURL.host}/?join=${encodeURIComponent(url.toString())}`),
-    ['stun:stun.l.google.com:19302', `stun:${documentURL.hostname}:3478`].map(toURL)
-  )
+const net = brochain(
+  {
+    name: "invite handler",
+    onNet(event: NetEvent) {
+      if (event.type === 'invite') {
+        alert(`${documentURL.protocol}//${documentURL.host}/?join=${encodeURIComponent(event.url.toString())}`)
+      }
+    }
+  }
 )
 
 const BANANA = () => {

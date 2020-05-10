@@ -1,6 +1,6 @@
-import { RTCSignallingConnection } from './Link';
+import { Connection } from './Link';
 
-export default class implements RTCSignallingConnection {
+export default class implements Connection {
 
   private socket: WebSocket
   private ready: boolean = false

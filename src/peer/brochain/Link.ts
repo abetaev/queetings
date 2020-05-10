@@ -40,7 +40,7 @@ export type Message<T> =
 type MessageSender = (message: string) => Promise<void>
 type MessageReceiver = (message: string) => void
 
-export interface RTCSignallingConnection {
+export interface Connection {
   send: MessageSender
   receive(receiver: MessageReceiver): void
   close(): void
@@ -89,24 +89,19 @@ export default class Link<T> {
 
   private state: 'offering' | 'normal'
 
-  private setControlChannel(channel: RTCDataChannel) {
-    channel.onmessage = ({ data }) => this.process(data)
-    this.controlChannel = channel
-  }
-
   constructor(
     private readonly chainId: string,
     private readonly handler: EventHandler,
     private readonly dataHandler: DataHandler<T>,
     private readonly mode: 'offer' | 'answer',
-    private signallingConnection: RTCSignallingConnection,
+    private connection: Connection,
     stunURLs: URL[]
   ) {
     const configuration: RTCConfiguration = {
       iceServers: stunURLs.map(url => ({ urls: url.toString() }))
     }
     const peer = new RTCPeerConnection(configuration)
-    signallingConnection.receive(message => this.process(message))
+    connection.receive(message => this.process(message))
     peer.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       const { candidate } = event
       if (candidate) {
@@ -122,9 +117,11 @@ export default class Link<T> {
           console.log(`error: answering side sent control channel`)
           this.tear()
         }
-        const emitJoinEvent = this.id && !this.controlChannel
-        this.setControlChannel(channel)
-        emitJoinEvent && this.handler({ type: 'join' })
+        const completeJoin = this.id && !this.controlChannel
+        this.controlChannel = channel
+        if (completeJoin) {
+          this.complete()
+        }
       }
     }
     peer.onnegotiationneeded = () => this.offer()
@@ -138,6 +135,7 @@ export default class Link<T> {
     if (mode === 'offer') {
       this.offer();
     }
+
   }
 
   private async offer() {
@@ -149,9 +147,12 @@ export default class Link<T> {
       if (!this.controlChannel) {
         const controlChannel = this.peer.createDataChannel('control')
         controlChannel.onopen = () => {
-          const emitJoinEvent = this.id && !this.controlChannel
-          this.setControlChannel(controlChannel)
-          emitJoinEvent && this.handler({ type: 'join' })
+          console.log(`control channel opened`)
+          const completeJoin = this.id && !this.controlChannel
+          this.controlChannel = controlChannel
+          if (completeJoin) {
+            this.complete()
+          }
         }
       }
       const offer = await this.peer.createOffer()
@@ -164,6 +165,7 @@ export default class Link<T> {
 
   private async process(data: string) {
     const message: Message<T> = JSON.parse(data)
+    console.log(`received ${message.type}`)
     switch (message.type) {
 
       case 'offer':
@@ -173,23 +175,26 @@ export default class Link<T> {
         }
         this.handler({
           type: 'call', from: message.from, take: async () => {
+            console.log(`call from ${message.from} accepted`)
             await this.peer.setRemoteDescription(new RTCSessionDescription(message));
             const answer = await this.peer.createAnswer();
             await this.peer.setLocalDescription(answer);
             await this.transmit({ type: 'answer', from: this.chainId, sdp: answer.sdp });
             const completeJoin = this.controlChannel && !this.id
+            this.id = message.from
             if (completeJoin) {
-              this.complete(message.from)
+              this.complete()
             }
           }
         })
         break;
 
       case 'answer':
-        const joinComplete = this.controlChannel && !this.id
+        const completeJoin = this.controlChannel && !this.id
+        this.id = message.from
         await this.peer.setRemoteDescription(new RTCSessionDescription(message));
-        if (joinComplete) {
-          this.complete(message.from)
+        if (completeJoin) {
+          this.complete()
         }
         break;
 
@@ -216,25 +221,28 @@ export default class Link<T> {
     }
   }
 
-  private complete(id: string) {
-    this.id = id
-    this.signallingConnection.close()
-    this.signallingConnection = {
+  private complete() {
+    console.log(`completing negotiation with ${this.id}`)
+    this.connection.close()
+    this.connection = {
       send: async (message) => this.controlChannel.send(message),
       close: () => this.controlChannel.close(),
       receive: (receiver: MessageReceiver) => this.controlChannel.onmessage = ({ data }) => receiver(data)
     }
+    this.controlChannel.onmessage = ({ data }) => this.process(data)
     this.handler({ type: 'join' })
   }
 
   private async transmit(message: Message<T>): Promise<void> {
-    await this.signallingConnection.send(JSON.stringify(message))
+    console.log(`transmitting ${message.type}`)
+    await this.connection.send(JSON.stringify(message))
   }
 
   public tear() {
     console.log(`tearing link ${this.id}`)
-    this.handler({ type: 'tear' })
+    this.connection.close()
     this.peer.close()
+    this.handler({ type: 'tear' })
   }
 
   public send(message: T) {

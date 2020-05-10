@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuid } from 'uuid'
-import Link, { Event as LinkEvent, RTCSignallingConnection } from './Link'
+import Link, { Event as LinkEvent, Connection } from './Link'
 import Relay from './Relay'
 
 export type Route = string[]
@@ -22,7 +22,7 @@ interface DataPacket<T> {
   data: T
 }
 
-interface SignallingPacket<T> {
+interface SignallingPacket {
   type: 'signal'
   message: string
 }
@@ -33,7 +33,7 @@ type Packet<T> =
       forward: string[]
       backward: string[]
     }
-  } & (SignallingPacket<T>
+  } & (SignallingPacket
     | DataPacket<T>
     | CallPacket)
 
@@ -103,12 +103,12 @@ export default class <T> {
     })
   }
 
-  private openSignalling(route: string[]): RTCSignallingConnection {
+  private openSignalling(route: string[]): Connection {
     const target = route[route.length - 1]
     return {
       send: async (message) => this.sendSignal(message, route),
-      receive: (receiver) => this.receiveSignal(target, receiver),
-      close: () => this.closeSignalling(target)
+      receive: (receiver) => this.signalling[target] = receiver,
+      close: () => delete this.signalling[target]
     };
   }
 
@@ -121,14 +121,6 @@ export default class <T> {
       },
       message
     })
-  }
-
-  private receiveSignal(target: string, receiver: (message: string) => void): void {
-    this.signalling[target] = receiver
-  }
-
-  private closeSignalling(target: string): void {
-    delete this.signalling[target]
   }
 
   private route(source: string, packet: Packet<T>): void {

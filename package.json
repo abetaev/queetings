@@ -20,20 +20,20 @@
     "node-static": "^0.7.11",
     "stun": "^2.1.0",
     "uuid": "^3.4.0",
-    "ws": "^7.2.3"
+    "ws": "^7.2.5"
   },
   "devDependencies": {
-    "@types/node": "^13.11.1",
+    "@types/node": "^13.13.5",
     "@types/node-static": "^0.7.3",
-    "@types/uuid": "^3.4.8",
-    "@types/ws": "^7.2.3",
+    "@types/uuid": "^3.4.9",
+    "@types/ws": "^7.2.4",
     "clipboard-polyfill": "^2.8.6",
-    "jest": "^25.3.0",
-    "node-watch": "^0.6.3",
+    "jest": "^25.5.4",
+    "node-watch": "^0.6.4",
     "parcel-bundler": "^1.12.4",
-    "preact": "^10.4.0",
+    "preact": "^10.4.1",
     "preact-material-components": "^1.6.1",
     "typescript": "^3.8.3",
-    "webrtc-adapter": "^7.5.1"
+    "webrtc-adapter": "^7.6.0"
   }
 }
