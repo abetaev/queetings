@@ -2,19 +2,15 @@
  * environment
  */
 
-import Chain, { Event as ChainEvent } from './Chain'
+import makeChain, { Chain, Event as ChainEvent } from './Chain'
 
-export type NetEvent = { net: Net } & ChainEvent
-export type ServiceEvent<T> = { net: Net, type: string, data: T }
-export type Event =
-  NetEvent
-  | ServiceEvent<any>
+export type Event = { net: Net } & ChainEvent
 
 export type MessageSender<T> = (message: T) => void
-export interface Service<M> {
+export interface Service<M = any> {
   readonly name: string
-  onNet?(event: NetEvent, reply: MessageSender<M>): void
-  onService?(net: Net, event: M): void
+  onNet?(event: Event, reply: MessageSender<M>): void
+  onService?(event: M, net: Net): void
   receive?(net: Net, route: string[], message: M, reply: MessageSender<M>): void
 }
 
@@ -29,20 +25,22 @@ export default class Net {
   private readonly services: Service<{ type: string }>[]
 
   constructor(
-    services: Service<{ type: string }>[],
-    stunURLs: URL[]
+    services: Service<{ type: string }>[]
   ) {
     this.services = services
-    this.chain = new Chain<{ type: string }>(
+    this.chain = makeChain<{ type: string }>(
       async (event) => await this.on(event),
-      (from, event) => this.receive(from, event),
-      stunURLs
+      (from, event) => this.receive(from, event)
     )
+  }
+
+  public attach(service: Service) {
+    this.services.push(service)
   }
 
   private async on(event: ChainEvent): Promise<void> {
     Object.values(this.services)
-      .forEach(({ onNet }) => onNet && onNet(
+      .forEach((h) => h.onNet && h.onNet(
         Object.assign({ net: this }, event),
         msg => this.chain.send(msg, [event.from])
       ))
@@ -50,12 +48,12 @@ export default class Net {
 
   private receive(route: string[], message: Typed & any): void {
     Object.values(this.services)
-      .forEach(({receive}) => receive && receive(this, route, message, msg => this.chain.send(msg, route)))
+      .forEach((h) => h.receive && h.receive(this, route, message, msg => this.chain.send(msg, route)))
   }
 
   public emit(event: Typed & any) {
     Object.values(this.services)
-      .forEach(({ onService }) => onService && onService(this, event))
+      .forEach((h) => h.onService && h.onService(event, this))
   }
 
 }

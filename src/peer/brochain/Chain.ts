@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuid } from 'uuid'
-import Link, { Event as LinkEvent, Connection } from './Link'
+import makeLink, { Link, Event as LinkEvent, Connection } from './Link'
 import Relay from './Relay'
 
 export type Route = string[]
@@ -37,7 +37,26 @@ type Packet<T> =
     | DataPacket<T>
     | CallPacket)
 
-export default class <T> {
+
+export type Links<T> = { [id: string]: Link<Packet<T>> }
+export interface Chain<T> {
+  readonly id: string
+  join(url: URL): void
+  send(message: T, route?: string[]): void
+  play(stream: MediaStream, id?: string): void
+  list(): string[]
+  tear(id: string): void
+  quit(): void
+}
+
+export default function<T> (
+  eventHandler: EventHandler,
+  dataHandler: DataHandler<T>
+) {
+  return new BroChain<T>(eventHandler, dataHandler)
+}
+
+class BroChain<T> implements Chain<T> {
 
   public readonly id = uuid()
 
@@ -47,16 +66,17 @@ export default class <T> {
 
   constructor(
     private eventHandler: EventHandler,
-    private dataHandler: DataHandler<T>,
-    private stunURLs: URL[]
+    private dataHandler: DataHandler<T>
   ) { }
 
-  async join(entryPoint: URL) {
+  join(entryPoint: URL) {
     switch (entryPoint.protocol) {
       case 'wss:':
-        return this.joinThroughRelay(entryPoint)
+        this.joinThroughRelay(entryPoint)
+        break
       case 'bro:':
-        return this.joinThroughChain(entryPoint)
+        this.joinThroughChain(entryPoint)
+        break
     }
   }
 
@@ -71,11 +91,11 @@ export default class <T> {
       mode = 'offer';
     }
     const relay = new Relay(entryPoint)
-    const link = new Link<Packet<T>>(
+    const link = makeLink<Packet<T>>(
       this.id,
       (event: LinkEvent) => this.on(link, event),
       (source: string, data: Packet<T>) => this.route(source, data),
-      mode, relay, this.stunURLs
+      mode, relay
     )
   }
 
@@ -86,13 +106,12 @@ export default class <T> {
     if (!target) {
       throw new Error(`illegal join requese: ${entryPoint} - no target`)
     }
-    const link = new Link<Packet<T>>(
+    const link = makeLink<Packet<T>>(
       this.id,
       (event: LinkEvent) => this.on(link, event),
       (source: string, data: Packet<T>) => this.route(source, data),
       'answer',
-      this.openSignalling(route),
-      this.stunURLs
+      this.openSignalling(route)
     )
     this.transmit({
       type: 'call',
@@ -154,13 +173,12 @@ export default class <T> {
             from,
             take: async () => {
               console.log(`taking call from ${from} (chain)`)
-              const link = new Link<Packet<T>>(
+              const link = makeLink<Packet<T>>(
                 this.id,
                 (event) => this.on(link, event),
                 (source, data) => this.route(source, data),
                 'offer',
-                this.openSignalling(route),
-                this.stunURLs
+                this.openSignalling(route)
               )
             }
           })
@@ -193,23 +211,20 @@ export default class <T> {
     this.eventHandler(Object.assign({ from: source.id }, event))
   }
 
-  public send(message: T, route: string[]) {
-    this.transmit({
-      type: 'data',
-      route: {
-        forward: route,
-        backward: [this.id]
-      },
-      data: message
-    })
-  }
-
-  public play(stream: MediaStream, id: string) {
-    const link = this.links[id]
-    if (link) {
-      link.play(stream)
+  public send(message: T, route?: string[]) {
+    if (route) {
+      this.transmit({
+        type: 'data',
+        route: {
+          forward: route,
+          backward: [this.id]
+        },
+        data: message
+      })
     } else {
-      console.log(`unknown link ${id}`)
+      // broadcast
+      Object.keys(this.links)
+        .forEach(id => this.send(message, [id]))
     }
   }
 
@@ -226,7 +241,30 @@ export default class <T> {
     }
   }
 
-  public known(): string[] {
+  public play(stream: MediaStream, id?: string) {
+    const link = this.links[id]
+    if (link) {
+      link.play(stream)
+    } else {
+      console.log(`unknown link ${id}`)
+    }
+  }
+
+  public quit() {
+    Object.values(this.links)
+      .forEach(link => link.tear())
+  }
+
+  public tear(id: string) {
+    const link = this.links[id]
+    if (link) {
+      link.tear()
+    } else {
+      throw new Error(`unknown link ${id}`)
+    }
+  }
+
+  public list(): string[] {
     return Object.keys(this.links)
   }
 

@@ -10,7 +10,7 @@ export default ({ network }: { network: Network }) => window['webview'] ? null :
         try {
           const url = new URL(target.value)
           const invitation = url.protocol === 'wss' ? target.value : url.searchParams.get('join')
-          network.accept(invitation)
+          network.join(invitation)
         } finally {
           target.value = ""
         }

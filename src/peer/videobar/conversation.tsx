@@ -6,22 +6,12 @@ import Item from './item'
 import Nav from './nav'
 import { Video } from './video'
 
-type Props = { connection: Connection, message?: string }
-export default ({ connection, message }: Props) => {
+type Props = { connection: Connection }
+export default ({ connection }: Props) => {
   const [muted, mute] = useState<boolean>(false)
-  let [color, setColor] = useState("transparent")
-  if (message && message !== color) {
-    color = message;
-    setTimeout(
-      () => setColor(message),
-      5000
-    )
-  } else {
-    color = "transparent";
-  }
   return (
     <Fragment>
-      <Video stream={connection.stream} muted={muted} style={{ backgroundColor: color }} />
+      <Video stream={connection.stream} muted={muted} />
       <Nav>
         <Item>
           <IconButton onClick={() => mute(!muted)}>

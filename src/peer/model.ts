@@ -14,7 +14,7 @@ export interface Connection {
   /**
    * send arbitrary data
    */
-  send(data: string): void
+  send?(data: string): void
 
   /**
    * free resources network connection
@@ -41,14 +41,12 @@ export interface Network {
   readonly connections: { [id: string]: Connection }
 
   /**
-   * accept invitation
+   * join network
    */
-  accept(invitation: URL): void
+  join(join?: URL): void
 
-  /**
-   * invite into network
-   */
-  invite(handler: InvitationHandler): void
+  hasInvite(): boolean
+  useInvite(): URL
 
   /**
    * quit network

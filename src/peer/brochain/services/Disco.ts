@@ -1,3 +1,7 @@
+/**
+ * simple discovery service
+ */
+
 import Net, { Event as NetEvent, MessageSender, Service } from './../Net'
 
 
@@ -39,7 +43,7 @@ export default class implements Service<Message> {
         case 'discover':
           reply({
             type: 'discovery',
-            discovery: net.chain.known()
+            discovery: net.chain.list()
           })
           break;
         case 'discovery':

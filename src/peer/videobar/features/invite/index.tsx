@@ -50,9 +50,7 @@ export default ({ network }: { network: Network }) => {
     image?: undefined
   })
   const InviteButton = (props: InviteButtonProps) => props.disabled ? null : (
-    <IconButton onClick={() => network.invite(
-      (url: URL) => props.callback(wrap(url))
-    )}>
+    <IconButton onClick={() => props.callback(wrap(invite))}>
       {props.image ? (
         <img src={props.image} style={{ height: "100%" }} />
       ) : (
@@ -64,13 +62,26 @@ export default ({ network }: { network: Network }) => {
     </IconButton>
   )
   const webview = window['webview']
+  const invite = network.hasInvite() && network.useInvite()
   return (
     <Item>
-      <InviteButton icon="link" callback={copy} disabled={webview} />
-      <InviteButton icon="email" callback={email} />
-      <InviteButton image={TelegramIcon} callback={telegram} />
-      <InviteButton image={ViberIcon} callback={viber} disabled={!webview} />
-      <InviteButton image={WhatsappIcon} callback={whatsapp} disabled={!webview} />
+      {
+        invite ? (
+          <Fragment>
+            <InviteButton icon="link" callback={copy} disabled={webview} />
+            <InviteButton icon="email" callback={email} />
+            <InviteButton image={TelegramIcon} callback={telegram} />
+            <InviteButton image={ViberIcon} callback={viber} disabled={!webview} />
+            <InviteButton image={WhatsappIcon} callback={whatsapp} disabled={!webview} />
+          </Fragment>) : (
+            <IconButton onClick={() => network.join()}>
+              <Fragment>
+                <IconButton.Icon on>person_add</IconButton.Icon>
+                <IconButton.Icon>person_add</IconButton.Icon>
+              </Fragment>
+            </IconButton>
+          )
+      }
     </Item>
   )
 }

@@ -1,3 +1,7 @@
+/**
+ * call acceptor service
+ */
+
 import Net, { Service, NetEvent } from '../Net'
 
 export default class implements Service<any> {

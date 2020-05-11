@@ -79,7 +79,27 @@ export type Event =
 export type EventHandler = (event: Event) => void
 export type DataHandler<T> = (source: string, data: T) => void
 
-export default class Link<T> {
+export interface Link<T> {
+  readonly id: string
+  send(message: T): void
+  play(stream: MediaStream): void
+  tear(): void
+}
+
+export default function <T>(
+  identity: string,
+  eventHandler: EventHandler,
+  dataHandler: DataHandler<T>,
+  mode: 'offer' | 'answer',
+  connection: Connection,
+): Link<T> {
+  return new RTCLink<T>(identity, eventHandler, dataHandler, mode, connection)
+}
+
+const documentURL = new URL(document.URL)
+const stunURLs = ['stun:stun.l.google.com:19302', `stun:${documentURL.hostname}:3478`]
+
+class RTCLink<T> implements Link<T> {
 
   private readonly peer: RTCPeerConnection
 
@@ -90,15 +110,14 @@ export default class Link<T> {
   private state: 'offering' | 'normal'
 
   constructor(
-    private readonly chainId: string,
+    private readonly identity: string,
     private readonly handler: EventHandler,
     private readonly dataHandler: DataHandler<T>,
     private readonly mode: 'offer' | 'answer',
     private connection: Connection,
-    stunURLs: URL[]
   ) {
     const configuration: RTCConfiguration = {
-      iceServers: stunURLs.map(url => ({ urls: url.toString() }))
+      iceServers: [{ urls: stunURLs }]
     }
     const peer = new RTCPeerConnection(configuration)
     connection.receive(message => this.process(message))
@@ -126,7 +145,6 @@ export default class Link<T> {
     }
     peer.onnegotiationneeded = () => this.offer()
     peer.ontrack = ({ streams: [stream] }) => {
-      console.log(`track!`)
       handler({ type: 'stream', stream })
     }
 
@@ -156,7 +174,7 @@ export default class Link<T> {
         }
       }
       const offer = await this.peer.createOffer()
-      await this.transmit({ from: this.chainId, type: 'offer', sdp: offer.sdp })
+      await this.transmit({ from: this.identity, type: 'offer', sdp: offer.sdp })
       await this.peer.setLocalDescription(offer)
     } finally {
       this.state = 'normal'
@@ -165,7 +183,6 @@ export default class Link<T> {
 
   private async process(data: string) {
     const message: Message<T> = JSON.parse(data)
-    console.log(`received ${message.type}`)
     switch (message.type) {
 
       case 'offer':
@@ -179,7 +196,7 @@ export default class Link<T> {
             await this.peer.setRemoteDescription(new RTCSessionDescription(message));
             const answer = await this.peer.createAnswer();
             await this.peer.setLocalDescription(answer);
-            await this.transmit({ type: 'answer', from: this.chainId, sdp: answer.sdp });
+            await this.transmit({ type: 'answer', from: this.identity, sdp: answer.sdp });
             const completeJoin = this.controlChannel && !this.id
             this.id = message.from
             if (completeJoin) {
@@ -234,7 +251,6 @@ export default class Link<T> {
   }
 
   private async transmit(message: Message<T>): Promise<void> {
-    console.log(`transmitting ${message.type}`)
     await this.connection.send(JSON.stringify(message))
   }
 

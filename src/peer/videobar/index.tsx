@@ -10,15 +10,14 @@ import Conversation from './conversation'
 import Flow from './flow'
 import Myself from './myself'
 
-export default ({ network, message }: { network: Network, message: { from: string, data: string } }) => {
+export default ({ network }: { network: Network }) => {
   return (
     <Flow
       head={<Myself network={network} />}
       tail={
-        Object.values(network.connections)
+        Object.values(network && network.connections || {})
           .map((conversation) => (
-             <Conversation connection={conversation}
-                           message={message && message.from === conversation.id && message.data} />
+             <Conversation connection={conversation} />
           ))
       } />
   )
