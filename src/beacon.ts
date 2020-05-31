@@ -1,3 +1,16 @@
+// config
+
+const dev = process.env['DEV'] && true
+
+const logging = (dev || process.env.LOGGING) && true
+function log(...args: any) {
+  if (logging) {
+    console.log(args)
+  }
+}
+
+const ssl = (dev || process.env['SSL']) && true
+
 // HTTPS
 
 import https from 'https'
@@ -7,14 +20,13 @@ import fs from 'fs'
 
 const fileServer = new FileServer("./peer")
 
-const dev = process.env['DEV'] && true
-
 const handler = (req: IncomingMessage, res: ServerResponse) => {
   dev && res.setHeader('Cache-Control', 'no-cache')
+  if (!req.url.includes('.')) {
+    req.url = `https://${req.headers.host}/`
+  }
   fileServer.serve(req, res)
 }
-
-const ssl = (dev || process.env['SSL']) && true
 
 const rootServer = (
   ssl ?
@@ -28,59 +40,62 @@ const rootServer = (
 
 rootServer.listen(process.env.PORT || (ssl ? 8082 : 8080))
 
+rootServer.on('close', () => {
+  log(`exiting...`)
+})
+
 // WebSocket
 
 import WebSocket, { Server } from 'ws'
 import { v4 as uuid } from 'uuid'
 
-const { stringify } = JSON
-
 const wsServer = new Server({ server: rootServer });
 
-const hosts: { [invitation: string]: WebSocket } = {}
+const links: { [invitation: string]: WebSocket } = {}
+
+function add(id: string, socket: WebSocket) {
+  log(`add ${id}`)
+  links[id] = socket
+  socket.onmessage = ({ data }) => {
+    const input: InputMessage = JSON.parse(data.toString())
+    if (input.type === 'data' && links[input.to]) {
+      const output: OutputDataMessage = { type: 'data', guest: id, data: input.data }
+      links[input.to].send(JSON.stringify(output))
+    }
+  }
+  socket.onclose = () => {
+    delete links[id]
+    log(`delete ${id}`)
+  }
+  socket.send(JSON.stringify({ type: 'host', host: id }))
+}
+
+const { stringify } = JSON
 
 wsServer.on('connection', (socket, request) => {
-  let [, invitation] = request.url.split('/')
-  if (!invitation) {
-    invitation = uuid()
-    hosts[invitation] = socket
-    const url = `wss://${request.headers['host']}/${invitation}`
-    socket.send(JSON.stringify({ type: 'invite', url }))
-    log(`create ${invitation}`)
-  } else if (hosts[invitation]) {
-    meet(hosts[invitation], socket)
-    delete hosts[invitation]
-    log(`accept ${invitation}`)
-  } else {
-    log(`invitation ${invitation} does not exist`)
-    socket.send(stringify({ type: "error", code: "void" }))
-    socket.close()
+  let host = request.url.substring(1)
+
+  if (!host) {
+    host = uuid()
   }
+
+  if (!links[host]) {
+    console.log(`host connection`)
+    add(host, socket)
+  } else {
+    const guest = uuid()
+    add(guest, socket)
+    links[host].send(stringify({ type: 'guest', guest }))
+    log(`${guest}@${host}`)
+  }
+
 })
 
 wsServer.on('error', error => {
   log(error)
 })
 
-
-function meet(host: WebSocket, guest: WebSocket) {
-
-  [[host, guest], [guest, host]].forEach(
-    ([from, to]) => from.on('message', data => {
-      log(`${from === host ? 'host' : 'guest'}: ${stringify(data)}`)
-      to.send(data)
-    })
-  );
-
-}
-
-const logging = (dev || process.env.LOGGING) && true
-
-function log(...args: any) {
-  if (logging) {
-    console.log(args)
-  }
-}
+log(`beacon started: dev=${dev}, ssl=${ssl}`)
 
 // STUN
 
@@ -94,3 +109,26 @@ function log(...args: any) {
 // });
 
 // server.listen(3478, '0.0.0.0')
+
+// types
+
+interface HostMessage {
+  type: 'host'
+  host: string
+}
+interface GuestMessage {
+  type: 'guest'
+  guest: string
+}
+interface InputDataMessage {
+  type: 'data'
+  to: string
+  data: string
+}
+interface OutputDataMessage {
+  type: 'data'
+  guest: string
+  data: string
+}
+export type InputMessage = InputDataMessage
+export type OutputMessage = HostMessage | GuestMessage | OutputDataMessage

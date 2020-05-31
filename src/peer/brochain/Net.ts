@@ -1,5 +1,5 @@
 /**
- * environment
+ * environment and inter-service comm
  */
 
 import makeChain, { Chain, Event as ChainEvent } from './Chain'

@@ -1,7 +1,7 @@
 import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
 import { useState } from 'preact/hooks'
-import { Connection } from '../model'
+import { Connection } from './model'
 import Item from './item'
 import Nav from './nav'
 import { Video } from './video'

@@ -1,3 +1,7 @@
+/**
+ * entry point
+ */
+
 import Net, { Service } from './Net'
 import Disco from './services/Disco'
 import JoyMe from './services/JoyMe'

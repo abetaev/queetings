@@ -26,7 +26,7 @@ const startBeacon = () => {
   log('building beacon...')
   log(execSync("npm run build-beacon"))
   log('starting beacon')
-  return spawn('npm', ['start'])
+  return spawn('node', ['beacon'])
 }
 let beacon;
 
@@ -47,12 +47,13 @@ runEvery(async () => {
     try {
       if (beacon) {
         log('stopping beacon...')
-        log(execSync("npm stop"))
+        beacon.kill()
       }
       log('starting beacon...')
       beacon = startBeacon()
       beacon.stdout.on('data', log)
     } catch (error) {
+      // TODO: handle errors properly
       log('beacon restart failed:')
       log(error)
     }

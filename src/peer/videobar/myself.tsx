@@ -5,7 +5,7 @@
 
 import { Fragment, h } from 'preact'
 import IconButton from 'preact-material-components/ts/IconButton'
-import { Network } from '../model'
+import { Network } from './model'
 import Accept from './features/accept'
 import Item from './item'
 import Nav from './nav'

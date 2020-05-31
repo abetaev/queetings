@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill';
 import { h, Fragment } from 'preact';
 import IconButton from "preact-material-components/ts/IconButton";
-import { Network } from "../../../model";
+import { Network } from "../../model";
 import Item from "../../item";
 import TelegramIcon from './telegram.png';
 import ViberIcon from './viber.png';

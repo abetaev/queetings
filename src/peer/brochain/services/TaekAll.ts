@@ -2,7 +2,7 @@
  * call acceptor service
  */
 
-import Net, { Service, NetEvent } from '../Net'
+import Net, { Service, Event as NetEvent } from '../Net'
 
 export default class implements Service<any> {
   

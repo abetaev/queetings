@@ -1,5 +1,5 @@
 /**
- * routing
+ * topology and routing
  */
 
 import { v4 as uuid } from 'uuid'
@@ -49,7 +49,7 @@ export interface Chain<T> {
   quit(): void
 }
 
-export default function<T> (
+export default function <T>(
   eventHandler: EventHandler,
   dataHandler: DataHandler<T>
 ) {
@@ -59,6 +59,8 @@ export default function<T> (
 class BroChain<T> implements Chain<T> {
 
   public readonly id = uuid()
+
+  private readonly relays: { [id: string]: Relay }
 
   private readonly links: { [id: string]: Link<Packet<T>> } = {}
 
