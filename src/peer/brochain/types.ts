@@ -1,17 +1,19 @@
+import { Stream } from "purefi/dist/types"
+
 interface Typed {
   type: string
 }
 
-interface Connection<T> {
+interface Channel<T> {
   send(message: T): void
   close(): void
 }
 
 type Receiver<T> = (message: T) => void
 
-type Connector<I, O = I> = (
-  receive?: Receiver<I>,
-) => Connection<O>
+type Connection<I, O = I> = (
+  receive?: Receiver<I>
+) => Channel<O>
 
 interface OfferEvent {
   type: 'offer'
@@ -40,8 +42,9 @@ interface MediaEvent {
 }
 interface DataEvent {
   type: 'data'
+  from: string
   name: string
-  accept<I = any, O = I>(acceptor: Receiver<Connector<I, O>>): void
+  accept<I = any, O = I>(acceptor: Receiver<Connection<I, O>>): void
 }
 
 interface MediaCommand {
@@ -57,14 +60,28 @@ type Event = OfferEvent | AnswerEvent
   | JoinEvent | DropEvent
   | MediaEvent | DataEvent
 type Command = MediaCommand | DataCommand
-type Link = Connector<Event, Command>
+type Link = {
+  id: Promise<string>,
+  connector: Connection<Event, Command>
+}
+
+type Chain = (link: Link) => void;
+
+type DataStream<T, K extends keyof T = keyof T> = { id : K, stream: Stream<T[K]>};
+type Peer<T> = {
+  media: Stream<MediaStream>
+  data: Stream<DataStream<T>>
+}
 
 export {
+  Peer, DataStream,
   Event, Command,
 
-  Connection, Receiver, Connector,
+  Channel as Connection, Receiver, Connection as Connector,
 
   Link,
+
+  Chain,
 
   Typed
 }

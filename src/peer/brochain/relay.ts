@@ -1,75 +1,81 @@
 /**
- * signalling connection over beacon server
+ * muxed connection over relay server
  */
 
-import { Connector, Receiver, Typed } from './types';
+import { Stream } from 'purefi/dist/types';
+import rf from 'purefi'
+import { IdMessage, OutputDataMessage, InputDataMessage } from '../../relay'
 
-import { OutputMessage } from './../../beacon'
+type DataMessage = OutputDataMessage | InputDataMessage
+type Message = IdMessage | DataMessage
 
-const { parse, stringify } = JSON
+type StreamInfo<T> = { id: string, mode: 'answer' | 'offer', stream: Stream<T> }
 
-type RelayedConnection<T> = {
-  connector: Connector<T>
-  mode: 'host' | 'guest'
-  host: string,
-  guest: string
-}
+const { stringify, parse } = JSON
 
-export default function <T extends Typed = any>(
-  url: URL
-): Receiver<Receiver<RelayedConnection<T>>> {
+export default <T>(url: URL, handler: (id: string) => void): {
+  streams: Stream<StreamInfo<T>>,
+  connect: (to: string) => void
+} => {
+
   const socket = new WebSocket(url.toString());
 
-  const relayListeners: Receiver<RelayedConnection<T>>[] = []
-  const connectionListeners: { [id: string]: Receiver<T>[] } = {}
-  let host: string | null = null
-  let guest: string | null = null
+  const [internal, external] = rf.duplex(rf.run<Message>())
 
-  const createRelayedConnection = (host: string, guest: string, mode: 'host' | 'guest'): RelayedConnection<T> => {
-    connectionListeners[guest] = []
-    const relayedConnection = {
-      connector: (receiver: Receiver<T>) => {
-        connectionListeners[guest].push(receiver)
-        return {
-          send: (message: T) => {
-            socket.send(stringify({ type: 'data', to: guest, data: stringify(message) }))
-          },
-          close: () => {
-            connectionListeners[guest] = connectionListeners[guest].filter(listener => listener !== receiver);
-            this.send = () => { throw new Error('connection closed') }
-          }
-        }
-      },
-      mode,
-      host: mode === 'guest' ? guest : host,
-      guest: mode === 'host' ? host : guest
+  internal.subscribe(e => `internal: ${stringify(e)}`)
+  external.subscribe(e => `external: ${stringify(e)}`)
+
+  socket.onmessage = ({ data }) => internal.publish(parse(data))
+  internal.subscribe(message => socket.send(stringify(message)))
+
+
+  rf.filter(external, message => message.type === 'id' ? message : undefined, true)
+    .subscribe(({ id }) => handler(id))
+
+  const data = rf.filter(external, message => message.type === "data" ? message : undefined)
+
+  data.subscribe(event => console.log(`data: ${stringify(event)}`))
+
+  const dataMux = rf.mux<T, InputDataMessage, OutputDataMessage>(
+    data,
+    ({ from, data }) => {
+      console.log(`muxin: ${from}`)
+      return [from, parse(data)]
+    },
+    (data, to) => {
+      console.log(`muxout: ${data} / ${to}`)
+      return ({ type: 'data', to, data: stringify(data) })
     }
-    Object.values(relayListeners).forEach(listener => listener(relayedConnection))
-    return relayedConnection;
-  }
+  )
 
-  socket.onmessage = (({ data }) => {
-    const message: OutputMessage = parse(data)
-    switch (message.type) {
-      case 'host':
-        host = message.host
-        break;
-      case 'guest':
-        guest = message.guest
-        createRelayedConnection(host, guest, 'host')
-        break;
-      case 'data':
-        guest = message.guest
-        if (!connectionListeners[guest]) {
-          createRelayedConnection(host, guest, 'guest')
-        }
-        connectionListeners[guest].forEach(listener => listener(JSON.parse(message.data)))
-        break;
+  dataMux.subscribe(event => console.log(`dataMux: ${stringify(event)}}`))
+
+  const streams = rf.map<Omit<StreamInfo<T>, "mode">, StreamInfo<T>>(
+
+    dataMux,
+
+    ({ id, stream }) => ({
+      id,
+      mode: 'answer',
+      stream
+    }),
+
+    ({ id, stream }) => ({ id, stream })
+
+  );
+
+  return {
+    streams,
+    connect: (id) => {
+      console.log('connecting to ' + id)
+      const stream = rf.run<T>()
+      stream.subscribe(event => console.log(`stream-${id}: ${JSON.stringify(event)}`))
+      streams.publish({
+        id,
+        mode: 'offer',
+        stream
+      })
     }
-  })
-
-  return (receive: Receiver<RelayedConnection<T>>) => {
-    relayListeners.push(receive)
   }
 
 }

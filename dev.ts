@@ -1,9 +1,12 @@
+import { ChildProcess, execSync, spawn } from "child_process"
+import watch from 'node-watch'
+
 process.env.DEV = '1'
 
 let peerUpdated = true
-let beaconUpdated = true
+let relayUpdated = true
 
-function log(message) {
+function log(message: any) {
   if (typeof message === 'string') {
     console.log(new Date(), message)
   } else {
@@ -11,7 +14,7 @@ function log(message) {
   }
 }
 
-function runEvery(operation, interval) {
+function runEvery(operation: () => void | Promise<void>, interval: number) {
   setTimeout(async () => {
     await operation();
     runEvery(operation, interval)
@@ -20,18 +23,17 @@ function runEvery(operation, interval) {
 
 const decoder = new TextDecoder();
 
-const { spawn, execSync } = require('child_process')
 
-const startBeacon = () => {
-  log('building beacon...')
-  log(execSync("npm run build-beacon"))
-  log('starting beacon')
-  return spawn('node', ['beacon'])
+const startRelay = () => {
+  log('building relay...')
+  log(execSync("npm run build-relay"))
+  log('starting relay')
+  return spawn('node', ['relay'])
 }
-let beacon;
+let relay: ChildProcess;
 
 runEvery(async () => {
-  const updateRequired = peerUpdated || beaconUpdated
+  const updateRequired = peerUpdated || relayUpdated
   if (peerUpdated) {
     peerUpdated = false;
     try {
@@ -42,31 +44,30 @@ runEvery(async () => {
       log(`peer update failed: ${error.toString()}`)
     }
   }
-  if (beaconUpdated) {
-    beaconUpdated = false;
+  if (relayUpdated) {
+    relayUpdated = false;
     try {
-      if (beacon) {
-        log('stopping beacon...')
-        beacon.kill()
+      if (relay) {
+        log('stopping relay...')
+        relay.kill()
       }
-      log('starting beacon...')
-      beacon = startBeacon()
-      beacon.stdout.on('data', log)
+      log('starting relay...')
+      relay = startRelay()
+      relay.stdout.on('data', log)
     } catch (error) {
       // TODO: handle errors properly
-      log('beacon restart failed:')
+      log('relay restart failed:')
       log(error)
     }
   }
-  updateRequired && log(`peer&beacon are up to date: https://localhost:8082/`)
+  updateRequired && log(`peer&relay are up to date: https://localhost:8082/`)
 }, 100)
 
-const watch = require('node-watch')
 watch('src', { recursive: true },
-  (_, file) => {
+  (_, file: string) => {
     const relativeFile = file.substr('src/'.length)
-    if (relativeFile.startsWith('beacon')) {
-      beaconUpdated = true
+    if (relativeFile.startsWith('relay')) {
+      relayUpdated = true
     } else if (relativeFile.startsWith('peer')) {
       peerUpdated = true
     } else {

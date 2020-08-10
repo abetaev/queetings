@@ -1,15 +1,16 @@
-#!/usr/bin/env node
+import ParcelBundler from 'parcel-bundler';
 
-const ParcelBundler = require('parcel-bundler')
-
-const [,, target, inputFile, outFilePath] = process.argv
+const [, , target, inputFile, outFilePath] = process.argv
 const [outDir, outFile] = outFilePath.split('/')
 
 const minify = process.env.DEV ? false : true;
 
+if (!(target === "node" || target === "browser")) {
+  throw new Error(`invalid target parameter: ${target}`)
+}
+
 const bundler = new ParcelBundler(inputFile, {
   target,
-  inputFile,
   outFile,
   outDir,
   minify,

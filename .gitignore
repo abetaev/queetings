@@ -1,5 +1,5 @@
 /peer/
-/beacon/
+/relay/
 /node_modules/
 /.cache/
 /.vscode/

@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "build-peer": "node build.js browser src/peer.html peer/index.html",
-    "build-beacon": "node build.js node src/beacon.ts beacon/index.js",
-    "build": "npm run build-peer; npm run build-beacon",
-    "clean": "rm -rf peer beacon .cache node_modules; npm install",
+    "build-peer": "ts-node build.ts browser src/peer.html peer/index.html",
+    "build-relay": "ts-node build.ts node src/relay.ts relay/index.js",
+    "build": "npm run build-peer; npm run build-relay",
+    "clean": "rm -rf peer relay .cache node_modules; npm install",
     "rebuild": "npm run clean; npm run build",
     "deploy": "npm run rebuild; gcloud app deploy",
-    "start": "node beacon",
-    "stop": "ps x | grep 'node beacon/index.js' | awk '{system(\"kill \"$1)}'",
-    "dev": "node dev.js",
-    "test": "exit 0"
+    "start": "node relay",
+    "stop": "ps x | grep 'node relay' | awk '{system(\"kill \"$1)}'",
+    "dev": "ts-node dev.ts",
+    "test": "ts-node node_modules/tape/bin/tape src/**/*.test.ts"
   },
   "author": "abetaev",
   "license": "ISC",
@@ -23,17 +23,22 @@
     "ws": "^7.3.0"
   },
   "devDependencies": {
-    "@types/node": "^13.13.9",
+    "@babel/preset-typescript": "^7.10.1",
+    "@types/node": "^13.13.12",
     "@types/node-static": "^0.7.5",
+    "@types/parcel-bundler": "^1.12.1",
+    "@types/tape": "^4.13.0",
     "@types/uuid": "^3.4.9",
-    "@types/ws": "^7.2.4",
+    "@types/ws": "^7.2.5",
     "clipboard-polyfill": "^2.8.6",
-    "jest": "^25.5.4",
     "node-watch": "^0.6.4",
     "parcel-bundler": "^1.12.4",
     "preact": "^10.4.4",
     "preact-material-components": "^1.6.1",
-    "typescript": "^3.9.3",
-    "webrtc-adapter": "^7.6.1"
+    "purefi": "^0.0.11",
+    "tape": "^5.0.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.5",
+    "webrtc-adapter": "^7.6.2"
   }
 }

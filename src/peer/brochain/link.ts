@@ -1,5 +1,21 @@
-import { Connector, Event, Link, Receiver, Connection, Command } from './types'
+import rf from 'purefi'
+import { Stream } from "purefi/dist/types"
+import { DataStream, Peer } from './types'
 
+interface ICECandidateMessage {
+  type: 'ice'
+  candidate: RTCIceCandidateInit
+}
+interface OfferMessage {
+  type: 'offer'
+  sdp: string
+}
+interface AnswerMessage {
+  type: 'answer'
+  sdp: string
+}
+type SignallingMessage = ICECandidateMessage | OfferMessage | AnswerMessage
+type SignallingStream = Stream<SignallingMessage>
 
 // configuration
 const documentURL = new URL(document.URL)
@@ -8,119 +24,55 @@ const configuration: RTCConfiguration = {
   iceServers: [{ urls: stunURLs }]
 }
 
-const { stringify, parse } = JSON
+const { parse } = JSON
 
-interface ICECandidateMessage {
-  type: 'ice'
-  candidate: RTCIceCandidateInit
-}
-interface OfferMessage {
-  type: 'offer'
-  from: string
-  sdp: string
-}
-interface AnswerMessage {
-  type: 'answer'
-  from: string
-  sdp: string
-}
-type SignallingMessage = ICECandidateMessage | OfferMessage | AnswerMessage
-type SignallingConnector = Connector<SignallingMessage>
-
-function channelToConnector<I = any, O = I>(channel: RTCDataChannel): Connector<I, O> {
-  const listeners: Receiver<I>[] = []
-  channel.onmessage = ({ data }) => {
-    const message = parse(data)
-    listeners.forEach(listener => listener(message))
-  }
-  return (receiver: Receiver<I>) => {
-    receiver && listeners.push(receiver)
-    return {
-      send: (message: O) => channel.send(stringify(message)),
-      close: () => channel.close()
-    }
-  }
-}
-
-export default function (
-  identity: string,
+export default function <T>(
   mode: 'offer' | 'answer',
-  connector: SignallingConnector
-): Link {
-  let id: string | null = null
-  let controlChannel: RTCDataChannel | null = null
+  initialSignallingStream: SignallingStream
+): Peer<T> {
 
   const peer = new RTCPeerConnection(configuration)
+  let signallingStream = initialSignallingStream
+  let state: 'init' | 'normal' | 'offering' = 'init'
 
-  const listeners: Receiver<Event>[] = []
-  function emit(event: Event) {
-    listeners.forEach(listener => listener(event))
-  }
-
-  peer.ontrack = ({ streams: [stream] }) => emit({ type: 'media', from: id, stream })
-
-  let state: 'normal' | 'offering' = 'normal'
-
-  function close() {
-    peer.close()
-    emit({ type: 'drop', from: id })
-  }
-
-  peer.onconnectionstatechange = ({}) => {}
+  peer.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
+    const { candidate } = event
+    if (candidate) {
+      publish({
+        type: 'ice',
+        candidate
+      });
+    }
+  };
 
   function handover(channel: RTCDataChannel) {
-    controlChannel = channel
-    controlChannel.onmessage = ({ data }) => receive(parse(data))
-    connection.close()
-    connection = {
-      send(message) { controlChannel.send(stringify(message)) },
-      close
-    }
-    emit({ type: 'join', from: id })
+    console.log(`handing over`)
+    signallingStream = rf.run<SignallingMessage>(publish => {
+      channel.onmessage = ({ data }) => publish(parse(data))
+    })
+    publish = signallingStream.subscribe(receive)
+    state = 'normal'
   }
 
-  function receive(message: SignallingMessage) {
-    let done = false
-
+  async function receive(message: SignallingMessage, { publish }: SignallingStream) {
     switch (message.type) {
 
       case 'offer':
-
         if (mode === 'offer' && state === 'offering') {
           return; // ignore simultaneous offer to avoid infinite loop
         }
-        id = message.from
-        listeners.forEach(listener => !done && listener({
-          type: 'offer',
-          from: id,
-          async accept() {
-            if (done) return
-            await peer.setRemoteDescription(new RTCSessionDescription(message))
-            const answer = await peer.createAnswer()
-            await peer.setLocalDescription(answer)
-            connection.send({ type: 'answer', from: identity, sdp: answer.sdp })
-            done = true
-          },
-          reject() { done = true }
-        }))
+        // TODO: authorization
+        await peer.setRemoteDescription(new RTCSessionDescription(message))
+        await peer.createAnswer()
+          .then(answer => {
+            peer.setLocalDescription(answer)
+            publish({ type: 'answer', sdp: answer.sdp })
+          })
         break;
 
       case 'answer':
-        id = message.from
-        listeners.forEach(listener => {
-          !done && listener({
-            type: 'answer',
-            from: id,
-            async confirm() {
-              await peer.setRemoteDescription(new RTCSessionDescription(message))
-              done = true
-            },
-            decline() {
-              peer.close()
-              done = true
-            }
-          })
-        })
+        // TODO: authorization
+        peer.setRemoteDescription(new RTCSessionDescription(message))
         break;
 
       case 'ice':
@@ -130,87 +82,56 @@ export default function (
     }
   }
 
-  let connection = connector((message) => receive(message))
-
-  peer.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
-    const { candidate } = event
-    if (candidate) {
-      connection.send({
-        type: 'ice',
-        candidate
-      });
-    }
-  };
-
-  peer.ondatachannel = ({ channel }) => {
-    if (channel.label === 'control') {
-      if (mode === 'offer') {
-        console.log(`error: answering side sent control channel`)
-        close()
-      }
-      handover(channel)
-    } else {
-      console.log(`received channel ${channel.label}`)
-      emit({
-        type: 'data',
-        name: channel.label,
-        accept<I = any, O = I>(acceptor: Receiver<Connector<I, O>>) {
-          acceptor(channelToConnector<I, O>(channel))
-        }
-      })
-    }
-  }
+  signallingStream.subscribe(event => `ss: ${JSON.stringify(event)}`)
+  let publish = signallingStream.subscribe(receive)
 
   async function offer() {
-    if (state === 'offering') return
-    try {
+    if (state !== 'offering') try {
+      const previousState = state
       state = 'offering'
-      if (!controlChannel && mode === 'offer') {
-        controlChannel = peer.createDataChannel('control')
-        controlChannel.onopen = () => handover(controlChannel)
-      }
       const offer = await peer.createOffer()
       await peer.setLocalDescription(offer)
-      connection.send({ from: identity, type: 'offer', sdp: offer.sdp })
+      await publish({
+        type: 'offer',
+        sdp: offer.sdp
+      })
     } finally {
       state = 'normal'
     }
   }
 
   peer.onnegotiationneeded = () => offer()
-  mode === 'offer' && offer()
 
-  return (receiver?: Receiver<Event>): Connection<Command> => {
-    receiver && listeners.push(receiver)
-    return {
-      send(message: Command) {
-        switch (message.type) {
-          case "media":
-            message.stream.getTracks()
-              .forEach(track => peer.addTrack(track, message.stream))
-            break;
-          case "data":
-            if (mode === "offer") {
-              console.log(`creating channel ${message.name}`)
-              const channel = peer.createDataChannel(message.name)
-              channel.onopen = () => {
-                console.log(`channel ${message.name} opened`)
-                emit({
-                  type: 'data',
-                  name: message.name,
-                  accept<I = any, O = I>(acceptor: Receiver<Connector<I, O>>) {
-                    acceptor(channelToConnector<I, O>(channel))
-                  }
-                })
-              }
-            } else {
-              console.log(`expecting channel ${message.name} to be provided`)
+  if (mode === 'offer') {
+    console.log(`initializing control channel`)
+    const controlChannel = peer.createDataChannel('control')
+    controlChannel.onopen = () => handover(controlChannel)
+    offer()
+  }
+
+  return {
+
+    media: rf.run<MediaStream>(
+      publish =>
+        peer.ontrack = ({ streams: [stream] }) => publish(stream)
+    ),
+
+    data: rf.run<DataStream<T>>(
+      publish =>
+        peer.ondatachannel = ({ channel }) => {
+          const label = channel.label as keyof T | 'control'
+          if (label === 'control') {
+            if (mode === 'offer') {
+              throw new Error(`error: answering side sent control channel`)
             }
-            break;
+            handover(channel)
+          } else {
+            console.log(`received channel ${channel.label}`)
+            publish({ id: label, stream: rf.run<T[typeof label]>() })
+          }
         }
-      },
-      close() { peer.close() }
-    }
+    )
+
   }
 
 }

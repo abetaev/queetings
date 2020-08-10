@@ -3,6 +3,7 @@
       "jsx": "react",
       "jsxFactory": "h",
       "downlevelIteration": true,
-      "esModuleInterop": true
+      "esModuleInterop": true,
+      "noImplicitAny": true
   }
 }
