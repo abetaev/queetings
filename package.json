@@ -19,7 +19,7 @@
     "node-static": "^0.7.11",
     "stun": "^2.1.0",
     "uuid": "^3.4.0",
-    "ws": "^7.2.3"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@types/node": "^13.11.1",
